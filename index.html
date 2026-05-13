@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>周子悦 - 生物信息工程师简历</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#050507',
+                            card: '#0a0b10',
+                            cardBorder: '#1a1c23',
+                            cyan: '#00f0ff',
+                            pink: '#ff003c',
+                            yellow: '#fcee0a',
+                            text: '#d1d5db',
+                            textMuted: '#6b7280'
+                        }
+                    },
+                    fontFamily: {
+                        title: ['Orbitron', 'sans-serif'],
+                        body: ['Rajdhani', 'sans-serif'],
+                        mono: ['Share Tech Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #121212;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #d1d5db;
+        }
+
+        /* Cyberpunk specific styles */
+        .cyber-glitch-text {
+            text-shadow: 2px 0 #00f0ff, -2px 0 #ff003c;
+        }
+        
+        .cyber-border-cyan {
+            border: 1px solid #00f0ff;
+            box-shadow: 0 0 5px rgba(0, 240, 255, 0.3), inset 0 0 5px rgba(0, 240, 255, 0.1);
+        }
+
+        .cyber-border-pink {
+            border: 1px solid #ff003c;
+            box-shadow: 0 0 5px rgba(255, 0, 60, 0.3);
+        }
+
+        .cyber-clip {
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        
+        .cyber-clip-reverse {
+            clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+        }
+
+        .skill-bar-bg {
+            background: repeating-linear-gradient(45deg, #1a1c23, #1a1c23 2px, #0a0b10 2px, #0a0b10 4px);
+        }
+
+        /* A4 Page Layout for Web and Print */
+        .a4-page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 2rem auto;
+            background-color: #050507;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Print Settings */
+        @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
+            body {
+                background: #050507 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                width: 210mm;
+                height: 297mm;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+            .a4-page {
+                transform: scale(0.91);
+                transform-origin: center center;
+                flex-shrink: 0;
+                width: 210mm;
+                height: 297mm;
+                margin: 0;
+                overflow: hidden;
+                box-sizing: border-box;
+                border: 1px solid #00f0ff !important;
+                box-shadow: 0 0 8px rgba(0, 240, 255, 0.5) !important;
+                padding: 1.25rem !important;
+                gap: 0.625rem !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            /* 压缩 header 间距 */
+            .a4-page header {
+                padding-bottom: 0.5rem !important;
+            }
+            /* 压缩主网格间距 */
+            .a4-page .grid {
+                gap: 0.625rem !important;
+            }
+            /* 压缩左栏各 section 间距 */
+            .a4-page .col-span-4 {
+                gap: 0.625rem !important;
+            }
+            /* 压缩右栏间距 */
+            .a4-page .col-span-8 {
+                gap: 0.5rem !important;
+            }
+            /* 压缩模块卡片内边距 */
+            .a4-page .bg-cyber-card {
+                padding: 0.5rem !important;
+            }
+            /* 压缩 section 标题下边距 */
+            .a4-page h3 {
+                margin-bottom: 0.375rem !important;
+            }
+            .a4-page h4 {
+                margin-bottom: 0.25rem !important;
+            }
+            /* 压缩列表行间距 */
+            .a4-page ul > li + li {
+                margin-top: 0.25rem !important;
+            }
+            /* 压缩技能栏列表 */
+            .a4-page .flex.flex-col.gap-3 {
+                gap: 0.375rem !important;
+            }
+            /* 压缩模块列表 & 教育时间线 */
+            .a4-page .flex.flex-col.gap-4 {
+                gap: 0.5rem !important;
+            }
+            /* 压缩 CORE_ABILITIES 标题下分隔线间距 */
+            .a4-page .border-b {
+                padding-bottom: 0.375rem !important;
+            }
+        }
+
+        /* Scanline effect */
+        .scanlines {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body class="font-body antialiased min-h-screen pb-10">
+
+    <!-- 系统提示 Toast (Hidden by default, hidden in print) -->
+    <div id="print-toast" class="fixed top-20 right-5 z-50 transition-all duration-500 transform translate-x-full opacity-0 no-print">
+        <div class="bg-cyber-bg border border-cyber-cyan p-4 shadow-[0_0_15px_rgba(0,240,255,0.4)] cyber-clip-reverse font-mono text-sm max-w-sm">
+            <div class="flex items-center gap-2 mb-2 border-b border-cyber-cyan/30 pb-1">
+                <i class="ph-fill ph-warning-circle text-cyber-yellow text-lg animate-pulse"></i>
+                <strong class="text-white tracking-widest text-base">SYS.NOTICE</strong>
+            </div>
+            <div class="text-cyber-text space-y-1">
+                <p>> 正在请求生成 PDF 档案...</p>
+                <p>> 请在弹出的窗口中将目标设为 <strong class="text-cyber-cyan">另存为 PDF</strong>。</p>
+                <p>> 务必在更多设置中勾选 <strong class="text-cyber-pink">背景图形</strong>，以保留系统 UI 特效。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Button (Hidden in print) -->
+    <div class="fixed top-5 right-5 z-50 no-print flex flex-col gap-2">
+        <button onclick="triggerPrintExport()" class="group relative px-6 py-2 font-mono font-bold text-cyber-bg bg-cyber-cyan cyber-clip hover:bg-white transition-colors">
+            <span class="flex items-center gap-2">
+                <i class="ph ph-file-pdf text-xl"></i>
+                [SYS.EXPORT_PDF]
+            </span>
+            <div class="absolute inset-0 cyber-border-cyan opacity-0 group-hover:opacity-100 transition-opacity scale-110"></div>
+        </button>
+    </div>
+
+    <!-- Resume Container -->
+    <div class="a4-page shadow-2xl shadow-cyan-500/10 p-8 flex flex-col gap-6 cyber-border-cyan border-opacity-30">
+        <div class="scanlines"></div>
+
+        <!-- Header -->
+        <header class="relative flex justify-between items-end border-b-2 border-cyber-textMuted/30 pb-4">
+            <div class="absolute top-0 right-0 text-cyber-cyan/20 font-mono text-xs text-right">
+                ID: ZY-221022 <br>
+                STATUS: ACTIVE_SEEKING <br>
+                CLASS: BIO_ANALYST
+            </div>
+            
+            <div class="flex flex-col z-10">
+                <h1 class="font-title text-5xl font-black text-white cyber-glitch-text tracking-wider mb-1">周子悦</h1>
+                <h2 class="font-mono text-cyber-cyan text-lg flex items-center gap-2">
+                    <i class="ph-fill ph-terminal-window"></i>
+                    Bioinformatics / Multi-omics Analyst
+                </h2>
+            </div>
+
+            <!-- Contacts -->
+            <div class="flex flex-col gap-1 font-mono text-xs text-cyber-text z-10 items-end">
+                <div class="flex items-center gap-2 hover:text-cyber-cyan transition-colors">
+                    <span>13671790143</span>
+                    <i class="ph-fill ph-phone text-cyber-pink text-base"></i>
+                </div>
+                <div class="flex items-center gap-2 hover:text-cyber-cyan transition-colors">
+                    <span>ziyuezhou221022@gmail.com</span>
+                    <i class="ph-fill ph-envelope-simple text-cyber-pink text-base"></i>
+                </div>
+                <div class="flex items-center gap-2 hover:text-cyber-cyan transition-colors">
+                    <span>github.com/ziyuezhou1</span>
+                    <i class="ph-fill ph-github-logo text-cyber-pink text-base"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-12 gap-6 flex-grow">
+            
+            <!-- Left Column (4/12) -->
+            <div class="col-span-4 flex flex-col gap-6">
+                
+                <!-- SYS.PROFILE -->
+                <section>
+                    <h3 class="font-title text-cyber-yellow text-sm tracking-widest border-l-4 border-cyber-yellow pl-2 mb-3 flex items-center gap-2">
+                        <i class="ph ph-user-focus text-lg"></i> // PROFILE
+                    </h3>
+                    <div class="bg-cyber-card cyber-clip-reverse p-4 text-sm text-cyber-textMuted leading-relaxed cyber-border-cyan border-opacity-20 border">
+                        具备生物学与计算分析交叉背景，接受系统科研训练。专注<strong class="text-cyber-cyan font-normal">单细胞转录组、多组学及AI辅助分析</strong>。能独立完成从原始数据质控、统计建模到可视化汇报的全分析流程。
+                    </div>
+                </section>
+
+                <!-- SYS.EDUCATION -->
+                <section>
+                    <h3 class="font-title text-cyber-cyan text-sm tracking-widest border-l-4 border-cyber-cyan pl-2 mb-3 flex items-center gap-2">
+                        <i class="ph ph-graduation-cap text-lg"></i> // EDUCATION
+                    </h3>
+                    <div class="flex flex-col gap-4 relative before:absolute before:left-[5px] before:top-2 before:bottom-2 before:w-[1px] before:bg-cyber-cyan/30">
+                        <!-- Bachelor -->
+                        <div class="relative pl-5">
+                            <div class="absolute left-0 top-1 w-2.5 h-2.5 bg-cyber-textMuted rounded-full"></div>
+                            <div class="font-bold text-white text-sm">上海交通大学</div>
+                            <div class="text-cyber-textMuted text-xs font-mono my-0.5">2018.09 - 2022.06</div>
+                            <div class="text-xs text-cyber-textMuted">本科</div>
+                            <div class="text-[11px] text-cyber-text mt-1 leading-tight flex items-start gap-1">
+                                <i class="ph-fill ph-caret-right text-cyber-textMuted mt-0.5"></i>
+                                扎实的生物学基础与科研思维训练。
+                            </div>
+                        </div>
+                        <!-- Master -->
+                        <div class="relative pl-5">
+                            <div class="absolute left-0 top-1 w-2.5 h-2.5 bg-cyber-cyan rounded-full shadow-[0_0_5px_#00f0ff]"></div>
+                            <div class="font-bold text-white text-sm">中国科学院大学</div>
+                            <div class="text-cyber-cyan text-xs font-mono my-0.5">2022.09 - 2027.06</div>
+                            <div class="text-xs text-cyber-textMuted">生物与化学交叉研究中心 / 硕士</div>
+                            <div class="text-[11px] text-cyber-text mt-1 leading-tight flex items-start gap-1">
+                                <i class="ph-fill ph-caret-right text-cyber-pink mt-0.5"></i>
+                                聚焦生信与多组学数据分析，长期参与科研数据统计与结果转化。
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SYS.TECH_STACK -->
+                <section>
+                    <h3 class="font-title text-cyber-pink text-sm tracking-widest border-l-4 border-cyber-pink pl-2 mb-3 flex items-center gap-2">
+                        <i class="ph ph-cpu text-lg"></i> // TECH_STACK
+                    </h3>
+                    <div class="flex flex-col gap-3 font-mono text-xs">
+                        <!-- R -->
+                        <div>
+                            <div class="flex justify-between text-cyber-text mb-1">
+                                <span><i class="ph-fill ph-code mr-1"></i>R (Omics/Stats/Plot)</span>
+                                <span class="text-cyber-cyan">95%</span>
+                            </div>
+                            <div class="h-1.5 w-full skill-bar-bg rounded-full overflow-hidden">
+                                <div class="h-full bg-cyber-cyan w-[95%] shadow-[0_0_5px_#00f0ff]"></div>
+                            </div>
+                        </div>
+                        <!-- Python -->
+                        <div>
+                            <div class="flex justify-between text-cyber-text mb-1">
+                                <span><i class="ph-fill ph-file-py mr-1"></i>Python (Data/Script)</span>
+                                <span class="text-cyber-pink">85%</span>
+                            </div>
+                            <div class="h-1.5 w-full skill-bar-bg rounded-full overflow-hidden">
+                                <div class="h-full bg-cyber-pink w-[85%] shadow-[0_0_5px_#ff003c]"></div>
+                            </div>
+                        </div>
+                        <!-- Shell -->
+                        <div>
+                            <div class="flex justify-between text-cyber-text mb-1">
+                                <span><i class="ph-fill ph-terminal mr-1"></i>Shell (Linux/Batch)</span>
+                                <span class="text-cyber-yellow">80%</span>
+                            </div>
+                            <div class="h-1.5 w-full skill-bar-bg rounded-full overflow-hidden">
+                                <div class="h-full bg-cyber-yellow w-[80%] shadow-[0_0_5px_#fcee0a]"></div>
+                            </div>
+                        </div>
+                        <!-- AI Tools -->
+                        <div>
+                            <div class="flex justify-between text-cyber-text mb-1">
+                                <span><i class="ph-fill ph-robot mr-1"></i>AI Tools (Dev/Assist)</span>
+                                <span class="text-white">90%</span>
+                            </div>
+                            <div class="h-1.5 w-full skill-bar-bg rounded-full overflow-hidden">
+                                <div class="h-full bg-white w-[90%] shadow-[0_0_5px_#fff]"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SYS.LANG -->
+                <section>
+                    <h3 class="font-title text-white text-sm tracking-widest border-l-4 border-white pl-2 mb-2 flex items-center gap-2">
+                        <i class="ph ph-translate text-lg"></i> // LANGUAGE
+                    </h3>
+                    <div class="flex items-center justify-between bg-cyber-card border border-cyber-cardBorder p-2 font-mono text-xs cyber-clip">
+                        <span class="text-cyber-text">英语 (English)</span>
+                        <span class="bg-cyber-pink text-white px-2 py-0.5 rounded-sm font-bold">CET-6: 589</span>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column (8/12) -->
+            <div class="col-span-8 flex flex-col gap-5">
+
+                <!-- Core Skills Header -->
+                <div class="flex items-center gap-3 border-b border-cyber-cyan/30 pb-2">
+                    <i class="ph-fill ph-dna text-3xl text-cyber-cyan animate-pulse"></i>
+                    <h3 class="font-title text-2xl text-white tracking-wider">CORE_ABILITIES</h3>
+                    <div class="flex-grow flex items-center justify-end font-mono text-[10px] text-cyber-cyan/50">
+                        DATA_PIPELINE_READY = TRUE
+                    </div>
+                </div>
+
+                <!-- Skill Modules -->
+                <div class="flex flex-col gap-4">
+                    
+                    <!-- Module 1: scRNA-seq -->
+                    <div class="bg-cyber-card border border-cyber-cardBorder p-4 cyber-clip relative group hover:border-cyber-cyan transition-colors">
+                        <div class="absolute top-0 right-0 bg-cyber-cyan text-cyber-bg font-mono text-[10px] px-2 py-0.5 font-bold">MODULE_01</div>
+                        <h4 class="font-bold text-cyber-cyan text-base mb-2 flex items-center gap-2">
+                            <i class="ph ph-chart-scatter text-xl"></i>单细胞转录组全流程分析
+                        </h4>
+                        <ul class="text-sm text-cyber-textMuted space-y-1.5">
+                            <li class="flex items-start gap-2">
+                                <i class="ph-fill ph-caret-right text-cyber-pink mt-1 text-xs"></i>
+                                <span>独立完成<span class="text-cyber-text font-medium">质控/过滤/标准化/降维/聚类与注释</span>完整闭环。</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="ph-fill ph-caret-right text-cyber-pink mt-1 text-xs"></i>
+                                <span>熟练挖掘Marker gene，进行亚群划分、差异表达比较与功能富集。</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="ph-fill ph-caret-right text-cyber-pink mt-1 text-xs"></i>
+                                <span>拓展高阶分析：<span class="text-cyber-text">拟时序、细胞通讯、通路活性、基因集评分</span>。</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="ph-fill ph-caret-right text-cyber-pink mt-1 text-xs"></i>
+                                <span>精通可视化展现：UMAP/t-SNE、气泡图、热图、小提琴图等。</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Module 2: Bulk RNA-seq -->
+                    <div class="bg-cyber-card border border-cyber-cardBorder p-4 cyber-clip relative group hover:border-cyber-pink transition-colors">
+                        <div class="absolute top-0 right-0 bg-cyber-pink text-cyber-bg font-mono text-[10px] px-2 py-0.5 font-bold">MODULE_02</div>
+                        <h4 class="font-bold text-cyber-pink text-base mb-2 flex items-center gap-2">
+                            <i class="ph ph-chart-line-up text-xl"></i>常规转录组 (Bulk RNA-seq)
+                        </h4>
+                        <ul class="text-sm text-cyber-textMuted space-y-1.5">
+                            <li class="flex items-start gap-2">
+                                <i class="ph-fill ph-caret-right text-cyber-cyan mt-1 text-xs"></i>
+                                <span>覆盖原始数据比对、定量、样本相关性与PCA评估。</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="ph-fill ph-caret-right text-cyber-cyan mt-1 text-xs"></i>
+                                <span>应对复杂科研场景：多因素设计、时间序列建模、处理前后对照等。</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="ph-fill ph-caret-right text-cyber-cyan mt-1 text-xs"></i>
+                                <span>结合文献输出结构化报告，梳理潜在分子机制与验证方向。</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Module 3: Proteomics & Metabolomics -->
+                    <div class="bg-cyber-card border border-cyber-cardBorder p-4 cyber-clip relative group hover:border-cyber-yellow transition-colors">
+                        <div class="absolute top-0 right-0 bg-cyber-yellow text-cyber-bg font-mono text-[10px] px-2 py-0.5 font-bold">MODULE_03</div>
+                        <h4 class="font-bold text-cyber-yellow text-base mb-2 flex items-center gap-2">
+                            <i class="ph ph-intersect text-xl"></i>蛋白组与代谢组联合分析
+                        </h4>
+                        <ul class="text-sm text-cyber-textMuted space-y-1.5">
+                            <li class="flex items-start gap-2">
+                                <i class="ph-fill ph-caret-right text-cyber-cyan mt-1 text-xs"></i>
+                                <span>数据清洗、标准化、差异物筛选与聚类富集分析。</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="ph-fill ph-caret-right text-cyber-cyan mt-1 text-xs"></i>
+                                <span>进行<span class="text-cyber-text">多组学交叉验证</span>（结合转录组/单细胞），锁定更具解释力的核心通路。</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Module 4: AI Dev -->
+                    <div class="bg-cyber-card border border-cyber-cardBorder p-4 cyber-clip relative group hover:border-white transition-colors">
+                        <div class="absolute top-0 right-0 bg-white text-cyber-bg font-mono text-[10px] px-2 py-0.5 font-bold">MODULE_04</div>
+                        <h4 class="font-bold text-white text-base mb-2 flex items-center gap-2">
+                            <i class="ph ph-brain text-xl"></i>AI 辅助科研与开发
+                        </h4>
+                        <ul class="text-sm text-cyber-textMuted space-y-1.5">
+                            <li class="flex items-start gap-2">
+                                <i class="ph-fill ph-caret-right text-cyber-cyan mt-1 text-xs"></i>
+                                <span>集成 AI 于 R/Python/Shell 工作流，加速数据处理脚搭建与代码调试。</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="ph-fill ph-caret-right text-cyber-cyan mt-1 text-xs"></i>
+                                <span>辅助科研文档梳理、分析思路推演与汇报材料精炼。</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="ph-fill ph-caret-right text-cyber-cyan mt-1 text-xs"></i>
+                                <span><span class="text-cyber-text font-medium">项目实战：</span>利用AI完成 cat_game 项目从构思、功能拆解到代码实现的完整原型开发。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- SYS.ADVANTAGES Tags -->
+                <div class="mt-2">
+                    <h3 class="font-title text-cyber-text text-sm tracking-widest border-l-4 border-cyber-text pl-2 mb-3 flex items-center gap-2">
+                        <i class="ph ph-target text-lg"></i> // ADVANTAGES
+                    </h3>
+                    <div class="flex flex-wrap gap-2 font-mono text-[11px]">
+                        <span class="px-2 py-1 bg-[#1a1c23] border border-cyber-cyan/50 text-cyber-cyan rounded-sm">#名校理科背景</span>
+                        <span class="px-2 py-1 bg-[#1a1c23] border border-cyber-pink/50 text-cyber-pink rounded-sm">#生物/计算交叉学科</span>
+                        <span class="px-2 py-1 bg-[#1a1c23] border border-cyber-yellow/50 text-cyber-yellow rounded-sm">#全流程闭环分析</span>
+                        <span class="px-2 py-1 bg-[#1a1c23] border border-white/50 text-white rounded-sm">#科研问题导向</span>
+                        <span class="px-2 py-1 bg-[#1a1c23] border border-cyber-cyan/50 text-cyber-cyan rounded-sm">#高效沟通交付</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer decorative -->
+        <div class="absolute bottom-2 right-4 font-mono text-[10px] text-cyber-textMuted flex items-center gap-4">
+            <span>[SYS.END_OF_RECORD]</span>
+            <div class="flex gap-1">
+                <div class="w-2 h-2 bg-cyber-pink animate-pulse"></div>
+                <div class="w-2 h-2 bg-cyber-cyan animate-pulse delay-75"></div>
+                <div class="w-2 h-2 bg-cyber-yellow animate-pulse delay-150"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for Print Export -->
+    <script>
+        function triggerPrintExport() {
+            const toast = document.getElementById('print-toast');
+            
+            // 显示提示框
+            toast.classList.remove('translate-x-full', 'opacity-0');
+            
+            // 缩短延迟到 100 毫秒：足够让提示框开始显示，同时不会被浏览器安全机制拦截
+            setTimeout(() => {
+                window.print();
+                
+                // 打印窗口关闭或取消后，隐藏提示框
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full', 'opacity-0');
+                }, 1500);
+            }, 100);
+        }
+    </script>
+</body>
+</html>
