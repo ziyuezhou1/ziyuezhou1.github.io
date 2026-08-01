@@ -4,6 +4,17 @@ A cyberpunk WebGL portfolio where visitors drive a DNA Rover around a five-stop 
 
 The original print-ready CV remains at [resume.html](resume.html).
 
+## 3D Style Lab
+
+Four non-driving art-direction studies are available at [style-lab/index.html](style-lab/index.html):
+
+- Toy-block modern city using Kenney City Builder assets
+- Storybook medieval settlement using KayKit Medieval Hexagon assets
+- Frontier lunar base using KayKit Space Base Bits
+- Low-poly wilderness using the KayKit nature set
+
+Every study uses the same fixed 25° high three-quarter camera. Drag pans the focus and wheel or pinch zooms; the direction never rotates. Models, materials, and textures are preserved from their CC0 source packs.
+
 ## Experience
 
 - Fixed 25° FOV, high three-quarter camera inspired by Bruno Simon's comfortable world-view design
@@ -23,7 +34,7 @@ Node.js 20.19 or newer is required.
     npm run check
     npm run preview
 
-The check command validates asset provenance, runs Vitest, and creates the production Vite build. Browser smoke tests are separate:
+Open <code>http://localhost:5173/style-lab/</code> after starting Vite. The check command validates asset provenance, runs Vitest, and creates the production build. Browser smoke tests are separate:
 
     npx playwright install chromium
     npm run test:e2e
@@ -42,12 +53,14 @@ The check command validates asset provenance, runs Vitest, and creates the produ
 
 ## Architecture
 
-- \`src/camera.js\`: stable world-space camera and pan/zoom controls
-- \`src/assets.js\`: Quaternius glTF loading and unmodified scene cloning
-- \`src/world.js\`: five-stop route, mature asset placement, atmosphere, props, and collectibles
-- \`src/vehicle.js\`: Rapier ray-cast rover and driving input
-- \`src/rendering.js\`: adaptive, restrained postprocessing
-- \`assets/manifest.json\`: required license and provenance ledger
-- \`THIRD_PARTY_ASSETS.md\`: human-readable source and reuse policy
+- <code>src/camera.js</code>: stable world-space homepage camera
+- <code>src/assets.js</code>: Quaternius glTF loading and unmodified scene cloning
+- <code>src/world.js</code>: five-stop route, atmosphere, props, and collectibles
+- <code>src/style-lab/config.js</code>: four pack manifests and authored placement layouts
+- <code>src/style-lab/main.js</code>: shared fixed-camera model showcase renderer
+- <code>src/vehicle.js</code>: Rapier ray-cast rover and driving input
+- <code>src/rendering.js</code>: adaptive, restrained postprocessing
+- <code>assets/manifest.json</code>: required license and provenance ledger
+- <code>THIRD_PARTY_ASSETS.md</code>: human-readable source and reuse policy
 
-The Pages workflow deploys only from \`main\`. This implementation branch runs CI and is not deployed.
+The Pages workflow deploys only from <code>main</code>. This implementation branch runs CI and is not deployed.

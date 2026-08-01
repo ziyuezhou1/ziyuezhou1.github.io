@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="3D art direction comparison using mature CC0 game assets." />
+    <title>Style Lab</title>
+    <link rel="stylesheet" href="/src/style-lab/styles.css" />
+  </head>
+  <body class="style-viewer" data-style="nature" data-ready="loading">
+    <canvas id="style-scene" aria-label="固定高位视角的 3D 风格场景"></canvas>
+
+    <div class="style-shell">
+      <header class="style-header">
+        <a class="style-brand" href="/style-lab/">ZY / Style Lab</a>
+        <a class="source-chip" data-source-link href="#" target="_blank" rel="noreferrer">Asset source</a>
+      </header>
+
+      <main class="style-copy">
+        <span id="style-index" class="style-index"></span>
+        <p id="style-kicker" class="style-kicker"></p>
+        <h1 id="style-title"></h1>
+        <p id="style-description" class="style-description"></p>
+        <div class="style-meta">
+          <span>25° fixed view</span>
+          <span>Drag to pan</span>
+          <span>Wheel / pinch to zoom</span>
+          <span id="style-license"></span>
+        </div>
+      </main>
+
+      <footer class="style-nav">
+        <a id="previous-style" href="#"><b aria-hidden="true">←</b><span>Previous</span></a>
+        <a class="all-styles" href="/style-lab/">All four styles</a>
+        <a id="next-style" href="#"><span>Next</span><b aria-hidden="true">→</b></a>
+      </footer>
+
+      <p class="interaction-hint">固定方向 · 拖拽平移 · 滚轮或双指缩放</p>
+
+      <div id="loading-panel" class="loading-panel" role="status" aria-live="polite">
+        <span id="style-progress-label">Loading original models · 0 / 0</span>
+        <div class="progress-track" aria-hidden="true"><span id="style-progress"></span></div>
+      </div>
+    </div>
+
+    <section id="style-fallback" class="style-fallback" hidden>
+      <div class="fallback-card">
+        <p class="style-kicker">STATIC FALLBACK</p>
+        <h1 id="fallback-title">Style Lab</h1>
+        <p id="fallback-copy"></p>
+        <nav>
+          <a data-source-link href="#" target="_blank" rel="noreferrer">Asset source</a>
+          <a href="/style-lab/">View all styles</a>
+          <a href="/">Back to portfolio</a>
+        </nav>
+      </div>
+    </section>
+
+    <script type="module" src="/src/style-lab/main.js"></script>
+  </body>
+</html>

@@ -20,6 +20,42 @@
       "notes": "Original embedded glTF from the Cyberpunk Game Kit, reused as modular route gateways without mesh or material edits."
     },
     {
+      "id": "kenney-city-builder-style-study",
+      "path": "public/assets/style-lab/city/building-small-a.glb",
+      "kind": "cc0-pack-subset",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KenneyNL/Starter-Kit-City-Builder",
+      "notes": "Nine original GLB models plus the shared colormap texture are bundled for the modern-city style study. Runtime code only clones, scales, rotates, positions, and assigns shadows."
+    },
+    {
+      "id": "kaykit-medieval-style-study",
+      "path": "public/assets/style-lab/medieval/building_castle_blue.gltf",
+      "kind": "cc0-pack-subset",
+      "author": "Kay Lousberg / KayKit",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0",
+      "notes": "Eight original blue-building glTF models, their binary buffers, and the shared medieval atlas are bundled without mesh, UV, texture, or material edits."
+    },
+    {
+      "id": "kaykit-space-base-style-study",
+      "path": "public/assets/style-lab/space/basemodule_A.gltf",
+      "kind": "cc0-pack-subset",
+      "author": "Kay Lousberg / KayKit",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0",
+      "notes": "Nine original Space Base Bits glTF models, buffers, and the shared atlas are bundled for the lunar-outpost study."
+    },
+    {
+      "id": "kaykit-nature-style-study",
+      "path": "public/assets/style-lab/nature/trees_A_large.gltf",
+      "kind": "cc0-pack-subset",
+      "author": "Kay Lousberg / KayKit",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0",
+      "notes": "Eight original nature glTF models, buffers, and the shared atlas are bundled for the wilderness study; only scene transforms are applied."
+    },
+    {
       "id": "procedural-rain-lab",
       "path": "procedural://src/world.js",
       "kind": "runtime-geometry",
@@ -50,15 +86,21 @@
   "approvedCc0Sources": [
     {
       "name": "Quaternius",
-      "url": "https://quaternius.com/packs/cyberpunkgamekit.html",
+      "url": "https://quaternius.com/",
       "license": "CC0-1.0",
-      "status": "Primary mature art source; two original glTF modules are bundled."
+      "status": "Bundled on the existing cyberpunk homepage."
     },
     {
       "name": "Kenney",
       "url": "https://kenney.nl/",
       "license": "CC0-1.0",
-      "status": "Approved secondary source; no binary is currently bundled."
+      "status": "Nine City Builder models and one shared texture are bundled in Style Lab."
+    },
+    {
+      "name": "KayKit",
+      "url": "https://kaylousberg.itch.io/",
+      "license": "CC0-1.0",
+      "status": "Medieval, space-base, and nature subsets are bundled in Style Lab."
     },
     {
       "name": "Poly Haven",

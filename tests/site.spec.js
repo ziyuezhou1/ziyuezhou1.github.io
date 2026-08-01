@@ -42,3 +42,32 @@ test('shows touch controls on a mobile viewport', async ({ page }) => {
     await expect(page.getByRole('button', { name: '加速' })).toBeVisible();
   }
 });
+
+test('opens the four fixed-camera Style Lab demos', async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+
+  await page.goto('/style-lab/');
+  await expect(page.getByRole('heading', { name: 'Style Lab' })).toBeVisible();
+
+  const routes = [
+    ['/style-lab/city.html', 'Toy-block Modern City'],
+    ['/style-lab/medieval.html', 'Storybook Kingdom'],
+    ['/style-lab/space.html', 'Frontier Space Base'],
+    ['/style-lab/nature.html', 'Low-poly Wilderness'],
+  ];
+
+  for (const [route, heading] of routes) {
+    await page.goto(route);
+    await expect(page.locator('body')).toHaveAttribute('data-ready', /true|fallback/, { timeout: 30_000 });
+    await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+    if ((await page.locator('body').getAttribute('data-ready')) === 'true') {
+      await expect(page.locator('#style-scene')).toBeVisible();
+    } else {
+      await expect(page.getByText(/WebGL is unavailable/)).toBeVisible();
+    }
+  }
+
+  expect(errors).toEqual([]);
+});
