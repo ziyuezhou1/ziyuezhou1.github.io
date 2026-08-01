@@ -32,6 +32,26 @@ describe('one-lap time trial', () => {
     expect(race.snapshot().elapsed).toBe(1500);
   });
 
+  it('requires directional gates to be crossed from the authored approach side', () => {
+    let time = 0;
+    const race = createRaceController({
+      checkpoints: [{ position: [0, 0], normal: [1, 0], width: 3 }],
+      now: () => time,
+      checkpointRadius: 3,
+    });
+    race.start();
+    time = 3000;
+    race.update({ x: 2, z: 0 });
+    race.update({ x: -2, z: 0 });
+    expect(race.snapshot().checkpointIndex).toBe(0);
+
+    race.update({ x: -3, z: 0 });
+    time = 4200;
+    race.update({ x: 2, z: 0 });
+    expect(race.snapshot().state).toBe(RACE_STATES.FINISHED);
+    expect(race.snapshot().lastSplit).toBe(1200);
+  });
+
   it('stores a separate best time per selected vehicle', () => {
     let time = 0;
     const storage = memoryStorage();
