@@ -217,8 +217,8 @@ function addProps(scene, physics, assets) {
     dynamicObjects.push({ mesh: group, body: dynamic.body });
   }
 
-  const rampRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -0.2));
-  const ramp = addBox(scene, [8, 0.55, 8], [-35, 1.35, 2], material(0xe6c684, 0.68), [0, 0, -0.2]);
+  const rampRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.2, 0, 0));
+  const ramp = addBox(scene, [8, 0.55, 8], [-35, 1.35, 2], material(0xe6c684, 0.68), [-0.2, 0, 0]);
   ramp.castShadow = ramp.receiveShadow = true;
   physics.addFixedBox({
     position: [-35, 1.35, 2],
@@ -233,6 +233,19 @@ function addProps(scene, physics, assets) {
     bump.rotation.y = Math.PI / 2;
     scene.add(bump);
   }
+
+  const southRampRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -0.2));
+  physics.addFixedBox({
+    position: [10, 1.25, -35],
+    size: [8, 0.5, 7],
+    rotation: {
+      x: southRampRotation.x,
+      y: southRampRotation.y,
+      z: southRampRotation.z,
+      w: southRampRotation.w,
+    },
+    friction: 1.15,
+  });
   return dynamicObjects;
 }
 
