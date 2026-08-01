@@ -106,7 +106,7 @@ function addDnaHelix(group, colorA, colorB) {
   }
 }
 
-function addDistrictDecoration(group, district, animated, highDetail) {
+function addDistrictDecoration(group, district, animated, highDetailItems) {
   if (district.id === 'origin') {
     const helix = new THREE.Group();
     addDnaHelix(helix, '#00f0ff', '#ff2f7d');
@@ -138,7 +138,7 @@ function addDistrictDecoration(group, district, animated, highDetail) {
       }),
     );
     group.add(points);
-    highDetail.add(points);
+    highDetailItems.push(points);
     animated.push({ object: points, type: 'rotate', speed: 0.12 });
     return;
   }
@@ -203,6 +203,7 @@ export function createWorld(scene, initialQuality = 'medium') {
   const animated = [];
   const lowDetail = new THREE.Group();
   const highDetail = new THREE.Group();
+  const highDetailItems = [];
   scene.add(lowDetail, highDetail);
 
   const hemisphere = new THREE.HemisphereLight(0x5079a8, 0x05070c, 1.3);
@@ -333,7 +334,7 @@ export function createWorld(scene, initialQuality = 'medium') {
     group.add(label);
     animated.push({ object: label, type: 'float', baseY: label.position.y, speed: 0.9 });
 
-    addDistrictDecoration(group, district, animated, highDetail);
+    addDistrictDecoration(group, district, animated, highDetailItems);
     scene.add(group);
     landmarks.set(district.id, group);
     obstacles.push({ x, z, radius: district.id === 'origin' ? 5.7 : 4.7 });
@@ -357,6 +358,9 @@ export function createWorld(scene, initialQuality = 'medium') {
   function setQuality(level) {
     lowDetail.visible = level !== 'low';
     highDetail.visible = level === 'high';
+    highDetailItems.forEach((item) => {
+      item.visible = level === 'high';
+    });
   }
 
   function update(elapsed) {

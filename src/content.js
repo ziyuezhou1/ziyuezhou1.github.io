@@ -46,13 +46,14 @@ export const districts = [
       en: 'A cross-disciplinary builder connecting biology, computational analysis, scientific visualization, and practical AI engineering.',
     },
     highlights: {
-      zh: ['上海交通大学本科', '中国科学院大学硕士', 'R / Python / Shell / AI 工作流'],
-      en: ['BSc, Shanghai Jiao Tong University', 'MSc, University of Chinese Academy of Sciences', 'R / Python / Shell / AI workflows'],
+      zh: ['上海交通大学本科', '中国科学院大学硕士', 'ziyuezhou221022@gmail.com', 'R / Python / Shell / AI 工作流'],
+      en: ['BSc, Shanghai Jiao Tong University', 'MSc, University of Chinese Academy of Sciences', 'ziyuezhou221022@gmail.com', 'R / Python / Shell / AI workflows'],
     },
     tags: ['BIOINFORMATICS', 'MULTI-OMICS', 'AI'],
     color: '#fcee0a',
     position: [0, 0],
     radius: 8,
+    href: 'https://github.com/ziyuezhou1',
   },
   {
     id: 'scrna',
