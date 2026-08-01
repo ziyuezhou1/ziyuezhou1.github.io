@@ -597,42 +597,42 @@ export function createWorld(scene, physics, renderer, initialQuality = 'medium',
   function update(elapsed, delta, focus) {
     if (!reducedMotion) {
       for (const item of animated) {
-      if (item.type === 'spin') {
-        item.object.rotation.y += delta * item.speed;
-        item.object.position.y = item.baseY + Math.sin(elapsed * item.speed * 2) * 0.16;
-      } else if (item.type === 'ring') {
-        item.object.rotation.z += delta * item.speed;
-      } else if (item.type === 'cell') {
-        item.object.rotation.x += delta * item.speed;
-        item.object.rotation.y -= delta * item.speed * 0.7;
-        item.object.position.y = item.baseY + Math.sin(elapsed * item.speed * 3) * 0.24;
+        if (item.type === 'spin') {
+          item.object.rotation.y += delta * item.speed;
+          item.object.position.y = item.baseY + Math.sin(elapsed * item.speed * 2) * 0.16;
+        } else if (item.type === 'ring') {
+          item.object.rotation.z += delta * item.speed;
+        } else if (item.type === 'cell') {
+          item.object.rotation.x += delta * item.speed;
+          item.object.rotation.y -= delta * item.speed * 0.7;
+          item.object.position.y = item.baseY + Math.sin(elapsed * item.speed * 3) * 0.24;
+        }
       }
-    }
 
-    for (const fragment of fragments) {
-      if (fragment.collected) continue;
-      fragment.mesh.rotation.y += delta * 1.7;
-      fragment.mesh.rotation.x += delta * 0.55;
-      fragment.mesh.position.y = fragment.mesh.userData.baseY + Math.sin(elapsed * 2 + fragment.mesh.position.x) * 0.22;
-    }
-
-    const positions = rain.geometry.attributes.position.array;
-    const speeds = rain.userData.speeds;
-    for (let index = 0; index < speeds.length; index += 1) {
-      const offset = index * 6;
-      const drop = speeds[index] * delta;
-      positions[offset + 1] -= drop;
-      positions[offset + 4] -= drop;
-      if (positions[offset + 4] < 0) {
-        const resetY = 25 + random() * 8;
-        const length = 0.75 + random() * 0.9;
-        positions[offset + 1] = resetY;
-        positions[offset + 4] = resetY - length;
+      for (const fragment of fragments) {
+        if (fragment.collected) continue;
+        fragment.mesh.rotation.y += delta * 1.7;
+        fragment.mesh.rotation.x += delta * 0.55;
+        fragment.mesh.position.y =
+          fragment.mesh.userData.baseY + Math.sin(elapsed * 2 + fragment.mesh.position.x) * 0.22;
       }
-    }
-    rain.geometry.attributes.position.needsUpdate = true;
-    if (focus) rain.position.set(focus.x, 0, focus.z);
 
+      const positions = rain.geometry.attributes.position.array;
+      const speeds = rain.userData.speeds;
+      for (let index = 0; index < speeds.length; index += 1) {
+        const offset = index * 6;
+        const drop = speeds[index] * delta;
+        positions[offset + 1] -= drop;
+        positions[offset + 4] -= drop;
+        if (positions[offset + 4] < 0) {
+          const resetY = 25 + random() * 8;
+          const length = 0.75 + random() * 0.9;
+          positions[offset + 1] = resetY;
+          positions[offset + 4] = resetY - length;
+        }
+      }
+      rain.geometry.attributes.position.needsUpdate = true;
+      if (focus) rain.position.set(focus.x, 0, focus.z);
     }
 
     for (const item of dynamicObjects) {
