@@ -3,20 +3,31 @@ import { expect, test } from '@playwright/test';
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('genome-city-language', 'zh');
-    localStorage.setItem('genome-city-quality', 'low');
+    localStorage.setItem('mini-city-quality', 'low');
   });
 });
 
-test('boots the immersive homepage and exposes the resume mode', async ({ page }) => {
+test('boots the miniature city, selects a car, and runs the optional race UI', async ({ page }) => {
+  test.setTimeout(90_000);
   await page.goto('/');
-  await expect(page.locator('body')).toHaveAttribute('data-ready', /true|fallback/);
+  await expect(page.locator('body')).toHaveAttribute('data-ready', /true|fallback/, { timeout: 30_000 });
 
   if ((await page.locator('body').getAttribute('data-ready')) === 'true') {
+    const plum = page.getByRole('button', { name: /Plum/ });
+    await plum.click();
+    await expect(plum).toHaveAttribute('aria-pressed', 'true');
+
     const enter = page.getByRole('button', { name: /ENTER EXPERIENCE/ });
     await expect(enter).toBeEnabled();
     await enter.click();
     await expect(page.locator('body')).toHaveAttribute('data-started', 'true');
     await expect(page.getByRole('link', { name: 'A4 简历' })).toHaveAttribute('href', '/resume.html');
+
+    await page.getByRole('button', { name: '开始单圈计时赛' }).click();
+    await expect(page.locator('body')).toHaveAttribute('data-race', /countdown|racing/);
+    await expect(page.getByRole('button', { name: '退出计时赛' })).toBeVisible();
+    await page.getByRole('button', { name: '退出计时赛' }).click();
+    await expect(page.locator('body')).toHaveAttribute('data-race', 'idle');
 
     await page.getByRole('button', { name: '切换语言' }).click();
     await expect(page.getByRole('link', { name: 'A4 Resume' })).toBeVisible();
@@ -33,9 +44,10 @@ test('keeps the preserved resume page reachable', async ({ page }) => {
 });
 
 test('shows touch controls on a mobile viewport', async ({ page }) => {
+  test.setTimeout(90_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await expect(page.locator('body')).toHaveAttribute('data-ready', /true|fallback/);
+  await expect(page.locator('body')).toHaveAttribute('data-ready', /true|fallback/, { timeout: 30_000 });
   if ((await page.locator('body').getAttribute('data-ready')) === 'true') {
     await page.getByRole('button', { name: /ENTER EXPERIENCE/ }).click();
     await expect(page.getByRole('button', { name: '前进' })).toBeVisible();

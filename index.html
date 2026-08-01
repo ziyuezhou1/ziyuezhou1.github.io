@@ -3,76 +3,92 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#030709" />
-    <meta
-      name="description"
-      content="周子悦的沉浸式生物信息学与 AI 工程作品集：驾驶 DNA Rover 穿越雨夜单细胞实验区。"
-    />
-    <title>ZY // Cell Drive</title>
+    <meta name="theme-color" content="#c9dcda" />
+    <meta name="description" content="周子悦的可驾驶现代微缩城市作品集：探索五个项目街区，或完成一圈城市计时赛。" />
+    <title>ZY / Mini City</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
-  <body>
-    <canvas id="scene" aria-label="可驾驶探索的雨夜单细胞实验区"></canvas>
+  <body data-race="idle">
+    <canvas id="scene" aria-label="可驾驶探索的现代微缩城市"></canvas>
 
     <section id="boot-screen" class="boot-screen" aria-labelledby="boot-title">
-      <div class="boot-atmosphere" aria-hidden="true"></div>
+      <div class="boot-orbit orbit-one" aria-hidden="true"></div>
+      <div class="boot-orbit orbit-two" aria-hidden="true"></div>
       <div class="boot-copy">
-        <p class="eyebrow">AN INTERACTIVE BIOINFORMATICS PORTFOLIO</p>
-        <h1 id="boot-title"><span>CELL</span><i>//</i>DRIVE</h1>
+        <p class="eyebrow">AN INTERACTIVE PORTFOLIO CITY</p>
+        <h1 id="boot-title">Small city.<br /><span>Big ideas.</span></h1>
         <p id="boot-subtitle" class="boot-subtitle">
-          驾驶 DNA Rover 穿过雨夜交通终端，进入单细胞数据实验区。
+          驾驶一辆玩具车穿过五个项目街区。自由探索，收集城市印章，或在城市环线挑战单圈计时。
         </p>
+
+        <div class="garage" aria-label="选择车辆">
+          <p>CHOOSE YOUR CAR</p>
+          <div class="garage-grid">
+            <button class="garage-car red" data-vehicle="red" type="button" aria-pressed="false"><i></i><b>Comet</b><small>RED</small></button>
+            <button class="garage-car green" data-vehicle="green" type="button" aria-pressed="false"><i></i><b>Sprout</b><small>GREEN</small></button>
+            <button class="garage-car yellow" data-vehicle="yellow" type="button" aria-pressed="false"><i></i><b>Sunny</b><small>YELLOW</small></button>
+            <button class="garage-car purple" data-vehicle="purple" type="button" aria-pressed="false"><i></i><b>Plum</b><small>PURPLE</small></button>
+          </div>
+        </div>
+
         <div class="load-track" aria-hidden="true"><span id="load-bar"></span></div>
-        <p id="load-status" class="load-status">正在启动物理与雨夜系统...</p>
+        <p id="load-status" class="load-status">正在准备城市...</p>
         <button id="enter-button" class="primary-action" type="button" disabled>
-          <span>IGNITE ROVER</span>
-          <small>点击进入 / CLICK TO START</small>
+          <span>ENTER EXPERIENCE</span>
+          <small>进入微缩城市 / START DRIVING</small>
         </button>
-        <p class="boot-note">WASD 驾驶 · SHIFT 推进 · SPACE 漂移 · Q 跃起 · E 连接终端</p>
+        <p class="boot-note">WASD 驾驶 · SHIFT 加速 · SPACE 漂移 · Q 跳跃 · E 互动</p>
       </div>
-      <div class="boot-coordinate" aria-hidden="true">
-        31°12' N / 121°28' E<br />RAIN LAB LINK 02<br />PHYSICS: STANDBY
-      </div>
+      <aside class="boot-card" aria-hidden="true">
+        <span>01</span><strong>Fixed 25° view</strong><small>Stable, readable, comfortable.</small>
+        <span>02</span><strong>Five districts</strong><small>Research, AI, and engineering.</small>
+        <span>03</span><strong>One-lap race</strong><small>Optional. No leaderboard.</small>
+      </aside>
     </section>
 
     <main id="interface" class="interface" hidden>
       <header class="topbar">
         <a class="brand" href="/" aria-label="返回体验起点">
           <span class="brand-mark">ZY</span>
-          <span><strong>CELL//DRIVE</strong><small>BIO × COMPUTATION</small></span>
+          <span><strong>MINI CITY</strong><small>BIO × COMPUTATION</small></span>
         </a>
-        <div class="system-state"><span></span><b id="status-text">RAIN LINK // ONLINE</b></div>
+        <div class="system-state"><span></span><b id="status-text">MINI CITY // OPEN</b></div>
         <nav class="actions" aria-label="体验选项">
+          <button id="race-button" class="race-button" type="button">开始单圈计时赛</button>
           <button id="projects-button" type="button">PROJECTS</button>
           <button id="language-button" type="button" aria-label="切换语言">EN</button>
           <button id="quality-button" type="button" aria-label="切换画质">Q: AUTO</button>
-          <button id="sound-button" type="button" aria-label="切换声音">SOUND: OFF</button>
+          <button id="sound-button" type="button" aria-label="切换声音">声音：关</button>
           <a id="resume-link" href="/resume.html">A4 简历</a>
         </nav>
       </header>
 
       <section class="mission-chip" aria-labelledby="mission-title">
-        <span class="mission-index">01</span>
+        <span class="mission-index">CITY<br />GUIDE</span>
         <div>
-          <p>ACTIVE ROUTE</p>
-          <h2 id="mission-title">前往单细胞实验区</h2>
-          <small id="mission-copy">穿过中央终端，收集数据碎片，从坡道进入雨夜实验区。</small>
+          <h2 id="mission-title">驾驶穿过五个项目街区</h2>
+          <small id="mission-copy">自由探索微缩城市，靠近彩色项目地标按 E；在橙色起点可开始单圈计时赛。</small>
         </div>
+      </section>
+
+      <section id="race-hud" class="race-hud" hidden aria-label="计时赛状态">
+        <p id="race-state">3</p>
+        <div><span>TIME</span><strong id="race-time">00:00.000</strong></div>
+        <div><span>BEST</span><strong id="race-best">--:--.---</strong></div>
+        <div><span>CHECKPOINT</span><strong id="race-checkpoint">1 / 6</strong></div>
+        <button id="race-cancel" type="button">退出计时赛</button>
       </section>
 
       <section class="telemetry" aria-label="车辆遥测">
         <div><strong id="speed-value">000</strong><span id="speed-label">时速</span></div>
-        <div><strong id="fragment-value">00 / 08</strong><span id="fragment-label">数据碎片</span></div>
-        <p id="zone-value">GATE APPROACH</p>
+        <div><strong id="fragment-value">00 / 08</strong><span id="fragment-label">城市印章</span></div>
+        <p id="zone-value">CITY LOOP</p>
       </section>
 
-      <div class="radar" aria-label="路线雷达">
+      <div class="radar" aria-label="城市小地图">
         <span class="radar-route"></span>
         <div id="radar-points"></div>
         <span id="radar-rover"></span>
@@ -80,20 +96,20 @@
 
       <div class="control-hint" aria-label="驾驶控制">
         <span><kbd>WASD</kbd><b id="control-drive">驾驶</b></span>
-        <span><kbd>⇧</kbd><b id="control-boost">推进</b></span>
+        <span><kbd>⇧</kbd><b id="control-boost">加速</b></span>
         <span><kbd>SPACE</kbd><b id="control-brake">漂移 / 刹车</b></span>
-        <span><kbd>Q</kbd><b id="control-jump">跃起</b></span>
+        <span><kbd>Q</kbd><b id="control-jump">跳跃</b></span>
         <span><kbd>R</kbd><b id="control-reset">复位</b></span>
       </div>
 
       <button id="proximity-prompt" class="proximity-prompt" type="button" hidden>
-        <kbd>E</kbd><span id="proximity-copy">连接现场终端</span>
+        <kbd>E</kbd><span id="proximity-copy">查看项目</span>
       </button>
 
       <section id="project-panel" class="project-panel" hidden aria-modal="true" role="dialog" aria-labelledby="project-title">
         <div class="terminal-header">
-          <span>PROJECT TRANSIT // SECURE LINK</span>
-          <button id="project-close" type="button" aria-label="关闭项目终端">×</button>
+          <span>PROJECT DISTRICT</span>
+          <button id="project-close" type="button" aria-label="关闭项目面板">×</button>
         </div>
         <nav id="project-tabs" class="project-tabs" aria-label="项目列表"></nav>
         <div class="project-content">
@@ -119,24 +135,22 @@
           <button data-control="right" aria-label="右转">▶</button>
         </div>
         <div class="mobile-actions">
-          <button data-control="boost" aria-label="推进">BOOST</button>
+          <button data-control="boost" aria-label="加速">GO</button>
           <button data-control="brake" aria-label="刹车">DRIFT</button>
-          <button data-control="jump" aria-label="跃起">JUMP</button>
+          <button data-control="jump" aria-label="跳跃">JUMP</button>
         </div>
       </div>
     </main>
 
     <section id="fallback" class="fallback" hidden aria-labelledby="fallback-title">
-      <p class="eyebrow">ACCESSIBLE PROJECT TRANSIT</p>
-      <h1 id="fallback-title">CELL//DRIVE <span>PROJECT INDEX</span></h1>
-      <p id="fallback-copy">当前设备未启用 WebGL 或偏好减少动态效果。你仍可访问全部项目。</p>
+      <p class="eyebrow">ACCESSIBLE PROJECT DIRECTORY</p>
+      <h1 id="fallback-title">MINI CITY <span>PROJECT INDEX</span></h1>
+      <p id="fallback-copy">当前设备未启用 WebGL。你仍可访问全部项目。</p>
       <div id="fallback-list" class="fallback-list"></div>
       <a class="primary-action fallback-resume" href="/resume.html">打开 A4 简历</a>
     </section>
 
-    <noscript>
-      <div class="noscript">此体验需要 JavaScript。你仍可访问 <a href="/resume.html">A4 简历</a>。</div>
-    </noscript>
+    <noscript><div class="noscript">此体验需要 JavaScript。你仍可访问 <a href="/resume.html">A4 简历</a>。</div></noscript>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

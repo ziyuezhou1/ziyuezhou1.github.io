@@ -1,160 +1,115 @@
 import * as THREE from 'three';
-import { cameraFov, engineForce, springScalar, steeringLimit } from './vehicleMath.js';
+import { engineForce, steeringLimit } from './vehicleMath.js';
 
 const KEY_BINDINGS = {
-  KeyW: 'forward',
-  ArrowUp: 'forward',
-  KeyS: 'backward',
-  ArrowDown: 'backward',
-  KeyA: 'left',
-  ArrowLeft: 'left',
-  KeyD: 'right',
-  ArrowRight: 'right',
-  ShiftLeft: 'boost',
-  ShiftRight: 'boost',
-  Space: 'brake',
-  ControlLeft: 'brake',
+  KeyW: 'forward', ArrowUp: 'forward',
+  KeyS: 'backward', ArrowDown: 'backward',
+  KeyA: 'left', ArrowLeft: 'left',
+  KeyD: 'right', ArrowRight: 'right',
+  ShiftLeft: 'boost', ShiftRight: 'boost',
+  Space: 'brake', ControlLeft: 'brake',
   KeyQ: 'jump',
 };
 
-function material(color, emissive = null, intensity = 0) {
-  return new THREE.MeshStandardMaterial({
-    color,
-    emissive: emissive || 0x000000,
-    emissiveIntensity: intensity,
-    metalness: 0.78,
-    roughness: emissive ? 0.22 : 0.34,
+const WHEEL_LOCATIONS = [
+  [-1.02, -0.2, 1.28], [1.02, -0.2, 1.28],
+  [-1.02, -0.2, -1.28], [1.02, -0.2, -1.28],
+];
+
+function basicCar() {
+  const group = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(2.2, 0.55, 3.5),
+    new THREE.MeshStandardMaterial({ color: 0xee6b4d, roughness: 0.42, metalness: 0.08 }),
+  );
+  body.position.y = 0.3;
+  const cab = new THREE.Mesh(
+    new THREE.BoxGeometry(1.55, 0.72, 1.55),
+    new THREE.MeshStandardMaterial({ color: 0xf8efe0, roughness: 0.34 }),
+  );
+  cab.position.set(0, 0.87, -0.22);
+  group.add(body, cab);
+  for (const [x, , z] of WHEEL_LOCATIONS) {
+    const wheel = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.45, 0.45, 0.32, 16),
+      new THREE.MeshStandardMaterial({ color: 0x34393a, roughness: 0.78 }),
+    );
+    wheel.rotation.z = Math.PI / 2;
+    wheel.position.set(x, 0, z);
+    group.add(wheel);
+  }
+  group.traverse((child) => {
+    if (child.isMesh) child.castShadow = child.receiveShadow = true;
   });
+  return group;
 }
 
-function addBox(group, size, position, surface, rotation = null) {
-  const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), surface);
-  mesh.position.set(...position);
-  if (rotation) mesh.rotation.set(...rotation);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  group.add(mesh);
-  return mesh;
-}
+function createCarRoot(initialVisual) {
+  const root = new THREE.Group();
+  const visualMount = new THREE.Group();
+  root.add(visualMount);
+  const wheelPivots = WHEEL_LOCATIONS.map(() => new THREE.Group());
+  wheelPivots.forEach((pivot) => root.add(pivot));
+  root.userData.visualMount = visualMount;
+  root.userData.wheelPivots = wheelPivots;
 
-function createRoverModel() {
-  const rover = new THREE.Group();
-  rover.name = 'DNA Rover Mk II';
-
-  const graphite = material(0x11171a);
-  const armor = material(0x263238);
-  const cyan = material(0x0d4a4f, 0x46e7e1, 3.4);
-  const magenta = material(0x4d1728, 0xff4778, 2.8);
-  const glass = new THREE.MeshPhysicalMaterial({
-    color: 0x5bc8d2,
-    emissive: 0x1a6870,
-    emissiveIntensity: 0.8,
-    metalness: 0.15,
-    roughness: 0.05,
-    transmission: 0.35,
-    transparent: true,
-    opacity: 0.72,
-  });
-
-  addBox(rover, [2.25, 0.48, 3.7], [0, 0.08, 0], graphite);
-  addBox(rover, [2.55, 0.22, 2.35], [0, 0.43, 0.32], armor, [-0.04, 0, 0]);
-  addBox(rover, [1.55, 0.78, 1.65], [0, 0.9, -0.22], glass, [-0.08, 0, 0]);
-  addBox(rover, [2.08, 0.14, 0.46], [0, 0.58, 1.67], magenta);
-  addBox(rover, [1.6, 0.06, 0.18], [0, 0.78, 1.91], cyan);
-  addBox(rover, [0.12, 0.12, 1.7], [0, 0.37, -1.68], cyan);
-
-  for (const x of [-0.72, 0.72]) {
-    const light = new THREE.Mesh(new THREE.CircleGeometry(0.16, 16), cyan);
-    light.position.set(x, 0.59, 1.91);
-    rover.add(light);
+  function setVisual(model) {
+    visualMount.clear();
+    const visual = model || basicCar();
+    visual.position.y -= 0.48;
+    visual.rotation.y = Math.PI;
+    visual.traverse((child) => {
+      if (!child.isMesh) return;
+      child.castShadow = true;
+      child.receiveShadow = true;
+    });
+    visualMount.add(visual);
   }
-
-  const wheelPivots = [];
-  const wheelSpins = [];
-  const wheelMaterial = material(0x050708);
-  const hubMaterial = material(0x123f43, 0x46e7e1, 2.4);
-  const wheelLocations = [
-    [-1.1, -0.2, 1.34],
-    [1.1, -0.2, 1.34],
-    [-1.1, -0.2, -1.34],
-    [1.1, -0.2, -1.34],
-  ];
-
-  for (const location of wheelLocations) {
-    const pivot = new THREE.Group();
-    const spin = new THREE.Group();
-    const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.36, 18), wheelMaterial);
-    tire.rotation.z = Math.PI / 2;
-    tire.castShadow = true;
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.21, 0.39, 14), hubMaterial);
-    hub.rotation.z = Math.PI / 2;
-    spin.add(tire, hub);
-    pivot.add(spin);
-    pivot.position.set(...location);
-    rover.add(pivot);
-    wheelPivots.push(pivot);
-    wheelSpins.push(spin);
-  }
-
-  const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.15, 8), cyan);
-  antenna.position.set(0.58, 1.72, -0.6);
-  antenna.rotation.z = -0.12;
-  rover.add(antenna);
-  const beacon = new THREE.PointLight(0x46e7e1, 17, 8, 2);
-  beacon.position.set(0, -0.25, 0.2);
-  rover.add(beacon);
-
-  rover.userData.wheelLocations = wheelLocations;
-  rover.userData.wheelPivots = wheelPivots;
-  rover.userData.wheelSpins = wheelSpins;
-  return rover;
+  root.userData.setVisual = setVisual;
+  setVisual(initialVisual);
+  return root;
 }
 
 export function createVehicleController({
   scene,
-  camera,
   canvas,
   physics,
+  visual = null,
   onImpact = () => {},
 }) {
   const { RAPIER, world } = physics;
-  const rover = createRoverModel();
-  scene.add(rover);
+  const car = createCarRoot(visual);
+  scene.add(car);
 
-  const start = { x: 0, y: 1.25, z: 39, heading: Math.PI };
-  const startRotation = new THREE.Quaternion().setFromAxisAngle(
-    new THREE.Vector3(0, 1, 0),
-    start.heading,
-  );
+  const start = { x: 0, y: 1.25, z: 40, heading: Math.PI };
+  const startRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), start.heading);
   const body = world.createRigidBody(
     RAPIER.RigidBodyDesc.dynamic()
       .setTranslation(start.x, start.y, start.z)
       .setRotation(startRotation)
       .setLinearDamping(0.18)
-      .setAngularDamping(0.85)
+      .setAngularDamping(0.88)
       .setCcdEnabled(true),
   );
   const chassisCollider = world.createCollider(
-    RAPIER.ColliderDesc.cuboid(1.08, 0.38, 1.78)
+    RAPIER.ColliderDesc.cuboid(1.06, 0.38, 1.72)
       .setTranslation(0, 0.12, 0)
       .setDensity(82)
-      .setFriction(0.28)
-      .setRestitution(0.04),
+      .setFriction(0.3)
+      .setRestitution(0.03),
     body,
   );
 
   const rayVehicle = world.createVehicleController(body);
   rayVehicle.indexUpAxis = 1;
   rayVehicle.setIndexForwardAxis = 2;
-
-  const wheelLocations = rover.userData.wheelLocations;
-  for (const location of wheelLocations) {
+  for (const location of WHEEL_LOCATIONS) {
     rayVehicle.addWheel(
       { x: location[0], y: -0.06, z: location[2] },
       { x: 0, y: -1, z: 0 },
       { x: -1, y: 0, z: 0 },
       0.36,
-      0.48,
+      0.47,
     );
   }
   for (let index = 0; index < 4; index += 1) {
@@ -163,30 +118,16 @@ export function createVehicleController({
     rayVehicle.setWheelSuspensionRelaxation(index, 5.2);
     rayVehicle.setWheelMaxSuspensionForce(index, 4400);
     rayVehicle.setWheelMaxSuspensionTravel(index, 0.38);
-    rayVehicle.setWheelFrictionSlip(index, 2.25);
+    rayVehicle.setWheelFrictionSlip(index, 2.2);
     rayVehicle.setWheelSideFrictionStiffness(index, 1.35);
   }
 
   const input = new Set();
   const mobileHandlers = [];
   let steering = 0;
-  let cameraYaw = 0;
-  let cameraPitch = 0.14;
-  let dragging = false;
-  let pointerX = 0;
-  let pointerY = 0;
   let jumpLatch = false;
   let grounded = false;
   let lastSpeed = 0;
-  let shake = 0;
-
-  const forward = new THREE.Vector3();
-  const cameraVelocity = new THREE.Vector3();
-  const desiredCamera = new THREE.Vector3();
-  const lookTarget = new THREE.Vector3();
-  const bodyQuaternion = new THREE.Quaternion();
-  const cameraDirection = new THREE.Vector3();
-  const tempVector = new THREE.Vector3();
 
   function clearMotion() {
     body.setLinvel({ x: 0, y: 0, z: 0 }, true);
@@ -204,13 +145,10 @@ export function createVehicleController({
     body.setRotation(rotation, true);
     clearMotion();
     steering = 0;
-    shake = 0;
-    cameraVelocity.set(0, 0, 0);
   }
 
   function teleport(x, z, targetX = 0, targetZ = 0) {
-    const heading = Math.atan2(targetX - x, targetZ - z);
-    reset({ x, y: 1.4, z, heading });
+    reset({ x, y: 1.35, z, heading: Math.atan2(targetX - x, targetZ - z) });
   }
 
   function onKeyDown(event) {
@@ -226,27 +164,6 @@ export function createVehicleController({
     const action = KEY_BINDINGS[event.code];
     if (action) input.delete(action);
     if (action === 'jump') jumpLatch = false;
-  }
-
-  function onPointerDown(event) {
-    if (event.button !== 0 || event.target !== canvas) return;
-    dragging = true;
-    pointerX = event.clientX;
-    pointerY = event.clientY;
-    canvas.setPointerCapture?.(event.pointerId);
-  }
-
-  function onPointerMove(event) {
-    if (!dragging) return;
-    cameraYaw = THREE.MathUtils.clamp(cameraYaw - (event.clientX - pointerX) * 0.0055, -1.25, 1.25);
-    cameraPitch = THREE.MathUtils.clamp(cameraPitch + (event.clientY - pointerY) * 0.004, -0.08, 0.58);
-    pointerX = event.clientX;
-    pointerY = event.clientY;
-  }
-
-  function onPointerUp(event) {
-    dragging = false;
-    canvas.releasePointerCapture?.(event.pointerId);
   }
 
   for (const button of document.querySelectorAll('[data-control]')) {
@@ -272,19 +189,17 @@ export function createVehicleController({
 
   window.addEventListener('keydown', onKeyDown, { passive: false });
   window.addEventListener('keyup', onKeyUp);
-  canvas.addEventListener('pointerdown', onPointerDown);
-  canvas.addEventListener('pointermove', onPointerMove);
-  canvas.addEventListener('pointerup', onPointerUp);
-  canvas.addEventListener('pointercancel', onPointerUp);
 
   function prePhysics(delta, locked = false) {
     const speed = rayVehicle.currentVehicleSpeed();
     const throttle = locked ? 0 : (input.has('forward') ? 1 : 0) - (input.has('backward') ? 1 : 0);
     const steerInput = locked ? 0 : (input.has('left') ? 1 : 0) - (input.has('right') ? 1 : 0);
     const boosting = !locked && input.has('boost');
-    const targetSteering = steerInput * steeringLimit(speed, boosting);
-    steering = THREE.MathUtils.lerp(steering, targetSteering, 1 - Math.pow(0.00008, delta));
-
+    steering = THREE.MathUtils.lerp(
+      steering,
+      steerInput * steeringLimit(speed, boosting),
+      1 - Math.pow(0.00008, delta),
+    );
     rayVehicle.setWheelSteering(0, steering);
     rayVehicle.setWheelSteering(1, steering);
     const force = engineForce(speed, throttle, boosting);
@@ -292,76 +207,46 @@ export function createVehicleController({
     for (let index = 0; index < 4; index += 1) {
       rayVehicle.setWheelEngineForce(index, force);
       rayVehicle.setWheelBrake(index, braking ? (index < 2 ? 19 : 11) : throttle === 0 ? 0.7 : 0);
-      rayVehicle.setWheelFrictionSlip(index, braking && index >= 2 ? 0.92 : 2.25);
+      rayVehicle.setWheelFrictionSlip(index, braking && index >= 2 ? 0.94 : 2.2);
     }
-
     grounded = false;
     for (let index = 0; index < 4; index += 1) grounded ||= rayVehicle.wheelIsInContact(index);
     if (!locked && input.has('jump') && grounded && !jumpLatch) {
-      body.applyImpulse({ x: 0, y: 860, z: 0 }, true);
+      body.applyImpulse({ x: 0, y: 820, z: 0 }, true);
       jumpLatch = true;
     }
-
     rayVehicle.updateVehicle(delta);
   }
 
-  function postPhysics(delta) {
+  function postPhysics() {
     const position = body.translation();
     const rotation = body.rotation();
-    rover.position.set(position.x, position.y, position.z);
-    rover.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
-
-    for (let index = 0; index < 4; index += 1) {
-      const pivot = rover.userData.wheelPivots[index];
-      const spin = rover.userData.wheelSpins[index];
-      const location = wheelLocations[index];
-      pivot.position.set(location[0], -0.06 - rayVehicle.wheelSuspensionLength(index), location[2]);
-      pivot.rotation.y = index < 2 ? rayVehicle.wheelSteering(index) : 0;
-      spin.rotation.x = rayVehicle.wheelRotation(index);
-    }
-
+    car.position.set(position.x, position.y, position.z);
+    car.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
     const speed = rayVehicle.currentVehicleSpeed();
     const impact = Math.max(0, Math.abs(lastSpeed) - Math.abs(speed) - 3.8);
-    if (impact > 0.5) {
-      shake = Math.min(1, shake + impact * 0.055);
-      onImpact(Math.min(1, impact / 11));
-    }
+    if (impact > 0.5) onImpact(Math.min(1, impact / 11));
     lastSpeed = speed;
-
-    if (position.y < -5 || Math.abs(position.x) > 52 || Math.abs(position.z) > 52) reset();
-    updateCamera(delta);
-  }
-
-  function updateCamera() {
-    // The world camera owns a fixed direction; vehicle heading never rotates the view.
+    if (position.y < -5 || Math.abs(position.x) > 58 || Math.abs(position.z) > 58) reset();
   }
 
   reset();
 
   return {
-    rover,
+    rover: car,
     body,
     chassisCollider,
-    get position() {
-      return rover.position;
-    },
-    get speed() {
-      return rayVehicle.currentVehicleSpeed();
-    },
-    get isGrounded() {
-      return grounded;
-    },
+    get position() { return car.position; },
+    get speed() { return rayVehicle.currentVehicleSpeed(); },
+    get isGrounded() { return grounded; },
     reset,
     teleport,
+    setVisual(model) { car.userData.setVisual(model); },
     prePhysics,
     postPhysics,
     dispose() {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
-      canvas.removeEventListener('pointerdown', onPointerDown);
-      canvas.removeEventListener('pointermove', onPointerMove);
-      canvas.removeEventListener('pointerup', onPointerUp);
-      canvas.removeEventListener('pointercancel', onPointerUp);
       for (const [button, press, release] of mobileHandlers) {
         button.removeEventListener('pointerdown', press);
         button.removeEventListener('pointerup', release);

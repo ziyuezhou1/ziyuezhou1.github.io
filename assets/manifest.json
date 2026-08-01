@@ -2,13 +2,40 @@
   "schemaVersion": 1,
   "bundledAssets": [
     {
+      "id": "kenney-mini-city-builder-core",
+      "path": "public/assets/style-lab/city/building-small-a.glb",
+      "kind": "cc0-pack-subset",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KenneyNL/Starter-Kit-City-Builder",
+      "notes": "Original buildings, garage, road modules, trees, fountain, and shared colormap reused by the homepage and Style Lab without mesh or material edits."
+    },
+    {
+      "id": "kenney-mini-city-builder-expansion",
+      "path": "public/assets/mini-city/city/road-corner.glb",
+      "kind": "cc0-pack-subset",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KenneyNL/Starter-Kit-City-Builder",
+      "notes": "Six additional original GLB road, grass, pavement, and tree modules plus their shared colormap support the larger homepage city."
+    },
+    {
+      "id": "kenney-mini-city-racing",
+      "path": "public/assets/mini-city/racing/track-finish.glb",
+      "kind": "cc0-pack-subset",
+      "author": "Kenney",
+      "license": "CC0-1.0",
+      "source": "https://github.com/KenneyNL/Starter-Kit-Racing",
+      "notes": "Original track, finish, bump, tents, forest, four vehicle color variants, and shared colormap are preserved and transformed only at runtime."
+    },
+    {
       "id": "quaternius-cyberpunk-platform-4x4",
       "path": "public/assets/models/quaternius/Platform_4x4.gltf",
       "kind": "gltf-model",
       "author": "Quaternius",
       "license": "CC0-1.0",
       "source": "https://quaternius.com/packs/cyberpunkgamekit.html",
-      "notes": "Original embedded glTF from the Cyberpunk Game Kit. Meshes, materials, and embedded texture are preserved; runtime code only clones and transforms it."
+      "notes": "Retained from the previous homepage for repository history; no longer loaded by the miniature-city homepage."
     },
     {
       "id": "quaternius-cyberpunk-platform-2x1",
@@ -17,16 +44,7 @@
       "author": "Quaternius",
       "license": "CC0-1.0",
       "source": "https://quaternius.com/packs/cyberpunkgamekit.html",
-      "notes": "Original embedded glTF from the Cyberpunk Game Kit, reused as modular route gateways without mesh or material edits."
-    },
-    {
-      "id": "kenney-city-builder-style-study",
-      "path": "public/assets/style-lab/city/building-small-a.glb",
-      "kind": "cc0-pack-subset",
-      "author": "Kenney",
-      "license": "CC0-1.0",
-      "source": "https://github.com/KenneyNL/Starter-Kit-City-Builder",
-      "notes": "Nine original GLB models plus the shared colormap texture are bundled for the modern-city style study. Runtime code only clones, scales, rotates, positions, and assigns shadows."
+      "notes": "Retained from the previous homepage for repository history; no longer loaded by the miniature-city homepage."
     },
     {
       "id": "kaykit-medieval-style-study",
@@ -35,7 +53,7 @@
       "author": "Kay Lousberg / KayKit",
       "license": "CC0-1.0",
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0",
-      "notes": "Eight original blue-building glTF models, their binary buffers, and the shared medieval atlas are bundled without mesh, UV, texture, or material edits."
+      "notes": "Original medieval models, buffers, and atlas remain bundled for Style Lab."
     },
     {
       "id": "kaykit-space-base-style-study",
@@ -44,7 +62,7 @@
       "author": "Kay Lousberg / KayKit",
       "license": "CC0-1.0",
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0",
-      "notes": "Nine original Space Base Bits glTF models, buffers, and the shared atlas are bundled for the lunar-outpost study."
+      "notes": "Original space-base models, buffers, and atlas remain bundled for Style Lab."
     },
     {
       "id": "kaykit-nature-style-study",
@@ -53,25 +71,25 @@
       "author": "Kay Lousberg / KayKit",
       "license": "CC0-1.0",
       "source": "https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0",
-      "notes": "Eight original nature glTF models, buffers, and the shared atlas are bundled for the wilderness study; only scene transforms are applied."
+      "notes": "Original nature models, buffers, and atlas remain bundled for Style Lab."
     },
     {
-      "id": "procedural-rain-lab",
+      "id": "procedural-mini-city",
       "path": "procedural://src/world.js",
       "kind": "runtime-geometry",
       "author": "Ziyue Zhou project",
       "license": "LicenseRef-Project-Original",
       "source": "src/world.js",
-      "notes": "Route surfaces, laboratory architecture, wet road, rain, props, data fragments, and skyline are generated at runtime around the CC0 kit pieces."
+      "notes": "Ground, connective road surfaces, project markers, checkpoint gates, barriers, second ramp, and city stamps are generated at runtime."
     },
     {
-      "id": "procedural-dna-rover",
+      "id": "procedural-driving-and-race",
       "path": "procedural://src/vehicle.js",
-      "kind": "runtime-geometry",
+      "kind": "runtime-system",
       "author": "Ziyue Zhou project",
       "license": "LicenseRef-Project-Original",
       "source": "src/vehicle.js",
-      "notes": "Original modular rover mesh synchronized to the Rapier chassis and wheels."
+      "notes": "Shared Rapier vehicle chassis and controller used with four unmodified Kenney vehicle visuals."
     },
     {
       "id": "procedural-soundscape",
@@ -80,33 +98,27 @@
       "author": "Ziyue Zhou project",
       "license": "LicenseRef-Project-Original",
       "source": "src/audio.js",
-      "notes": "Engine, rain, collision, and UI waveforms are generated in-browser and played through Howler."
+      "notes": "Short engine, collision, and UI waveforms are generated in-browser."
     }
   ],
   "approvedCc0Sources": [
     {
-      "name": "Quaternius",
-      "url": "https://quaternius.com/",
-      "license": "CC0-1.0",
-      "status": "Bundled on the existing cyberpunk homepage."
-    },
-    {
       "name": "Kenney",
       "url": "https://kenney.nl/",
       "license": "CC0-1.0",
-      "status": "Nine City Builder models and one shared texture are bundled in Style Lab."
+      "status": "Primary homepage art source: City Builder and Racing starter-kit subsets are bundled."
     },
     {
       "name": "KayKit",
       "url": "https://kaylousberg.itch.io/",
       "license": "CC0-1.0",
-      "status": "Medieval, space-base, and nature subsets are bundled in Style Lab."
+      "status": "Medieval, space-base, and nature subsets remain bundled in Style Lab."
     },
     {
-      "name": "Poly Haven",
-      "url": "https://polyhaven.com/",
+      "name": "Quaternius",
+      "url": "https://quaternius.com/",
       "license": "CC0-1.0",
-      "status": "Approved secondary source; no binary is currently bundled."
+      "status": "Previous cyberpunk modules remain in the repository but are not loaded on the new homepage."
     }
   ]
 }

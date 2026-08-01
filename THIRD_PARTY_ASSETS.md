@@ -1,29 +1,21 @@
 # Third-Party Assets
 
-All model packs below are released under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). Attribution is not required by the license, but sources are recorded for auditability.
+All model packs below are released under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). Attribution is not required, but sources are retained for auditability.
 
 ## Kenney Starter Kit: City Builder
 
 Source: [KenneyNL/Starter-Kit-City-Builder](https://github.com/KenneyNL/Starter-Kit-City-Builder)
 
-The Style Lab modern-city page bundles nine original GLB models and their shared colormap from the repository's <code>models</code> directory.
+The homepage and Style Lab use original GLB buildings, road modules, grass, trees, lamp roads, a garage, and a fountain with the original shared colormap. Runtime code only clones, scales, rotates, positions, and enables shadows.
 
-## KayKit Medieval Hexagon Pack
+## Kenney Starter Kit: Racing
 
-Source: [KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0](https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0)
+Source: [KenneyNL/Starter-Kit-Racing](https://github.com/KenneyNL/Starter-Kit-Racing)
 
-The medieval page uses eight finished blue-building models. The nature page uses eight finished mountain, hill, tree, and rock models. Each glTF remains paired with its original binary buffer and atlas texture.
+The homepage bundles original straight/corner/finish/bump track modules, tents, forest decorations, four truck color variants, and their shared colormap. All four cars use the same collider and handling values so visual selection does not change race fairness.
 
-## KayKit Space Base Bits
+## Existing Style Lab Packs
 
-Source: [KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0](https://github.com/KayKit-Game-Assets/KayKit-Space-Base-Bits-1.0)
+The comparison pages retain their original KayKit Medieval Hexagon, KayKit Space Base Bits, and nature subsets. The repository also retains two earlier Quaternius Cyberpunk Game Kit modules even though the redesigned homepage does not load them.
 
-The space page bundles nine finished habitat, garage, vehicle, landing-pad, and solar-panel models with their original buffers and atlas.
-
-## Quaternius Cyberpunk Game Kit
-
-Original pack: [Cyberpunk Game Kit](https://quaternius.com/packs/cyberpunkgamekit.html)
-
-The existing homepage bundles two mature Quaternius environment modules retrieved from the public [Chronos Rift source repository](https://github.com/amhndu/chronos-rift).
-
-None of these third-party meshes, UVs, textures, or materials are edited. Runtime code applies scene transforms and shadow flags only. See <code>assets/manifest.json</code> for the validated file ledger.
+No third-party mesh, UV, texture, or material file is edited. Procedural connective geometry, project markers, UI, physics configuration, checkpoints, and collectibles are project-original. See `assets/manifest.json` for the machine-validated ledger.
