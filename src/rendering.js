@@ -38,15 +38,15 @@ export function createRendering(canvas, scene, camera, initialQuality) {
     composer.addPass(new RenderPass(scene, camera));
 
     const bloom = new BloomEffect({
-      intensity: quality === 'high' ? 1.05 : 0.72,
-      luminanceThreshold: 0.42,
-      luminanceSmoothing: 0.28,
+      intensity: quality === 'high' ? 0.54 : 0.4,
+      luminanceThreshold: 0.72,
+      luminanceSmoothing: 0.2,
       mipmapBlur: true,
     });
     const chromatic = new ChromaticAberrationEffect({
       offset: new THREE.Vector2(
-        quality === 'high' ? 0.00042 : 0.00018,
-        quality === 'high' ? 0.0007 : 0.0003,
+        quality === 'high' ? 0.0001 : 0.00004,
+        quality === 'high' ? 0.00016 : 0.00006,
       ),
       radialModulation: true,
       modulationOffset: 0.22,
@@ -54,7 +54,7 @@ export function createRendering(canvas, scene, camera, initialQuality) {
     const vignette = new VignetteEffect({
       eskil: false,
       offset: 0.23,
-      darkness: 0.72,
+      darkness: 0.58,
     });
     composer.addPass(new EffectPass(camera, bloom, chromatic, vignette));
   }

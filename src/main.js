@@ -1,5 +1,7 @@
 import * as THREE from 'three';
+import { loadMatureAssets } from './assets.js';
 import { createAudioSystem } from './audio.js';
+import { createStableCamera } from './camera.js';
 import { copy, districts, physicalDistricts, worldBounds } from './content.js';
 import { createPhysics } from './physics.js';
 import { createRendering } from './rendering.js';
@@ -55,7 +57,7 @@ const elements = {
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let language = detectLanguage(window.localStorage, navigator.language);
-let quality = window.localStorage.getItem('cell-drive-quality') || chooseQuality({
+let quality = reducedMotion ? 'low' : window.localStorage.getItem('cell-drive-quality') || chooseQuality({
   width: window.innerWidth,
   dpr: window.devicePixelRatio,
   cores: navigator.hardwareConcurrency,
@@ -71,6 +73,7 @@ let physics;
 let world;
 let vehicle;
 let camera;
+let cameraRig;
 const audio = createAudioSystem();
 
 function supportsWebGL() {
@@ -248,8 +251,11 @@ function findNearbyDistrict() {
 function updateTelemetry() {
   if (!vehicle) return;
   elements.speed.textContent = String(Math.round(Math.abs(vehicle.speed) * 3.6)).padStart(3, '0');
-  const z = vehicle.position.z;
-  elements.zone.textContent = z > 25 ? 'GATE APPROACH' : z > 8 ? 'TRANSIT HUB' : z > -10 ? 'RAMP CORRIDOR' : 'SINGLE-CELL LAB';
+  const closest = physicalDistricts.reduce((best, district) => {
+    const distance = Math.hypot(vehicle.position.x - district.position[0], vehicle.position.z - district.position[1]);
+    return !best || distance < best.distance ? { district, distance } : best;
+  }, null);
+  elements.zone.textContent = closest?.district.code.split(' // ')[0] || 'ROUTE LOOP';
 }
 
 function onResize() {
@@ -264,16 +270,20 @@ async function initialize3D() {
   elements.loadStatus.textContent = language === 'zh' ? '正在初始化高动态范围渲染...' : 'INITIALIZING HDR PIPELINE...';
 
   const scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 180);
+  camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 180);
   rendering = createRendering(elements.canvas, scene, camera, quality);
 
   elements.loadBar.style.width = '31%';
   elements.loadStatus.textContent = language === 'zh' ? '正在加载 Rapier 物理...' : 'LOADING RAPIER PHYSICS...';
   physics = await createPhysics();
 
-  elements.loadBar.style.width = '58%';
-  elements.loadStatus.textContent = language === 'zh' ? '正在构建雨夜单细胞实验区...' : 'BUILDING THE RAIN LAB...';
-  world = createWorld(scene, physics, rendering.renderer, quality);
+  elements.loadBar.style.width = '46%';
+  elements.loadStatus.textContent = language === 'zh' ? '正在加载 Quaternius CC0 城市模块...' : 'LOADING QUATERNIUS CC0 MODULES...';
+  const matureAssets = await loadMatureAssets();
+
+  elements.loadBar.style.width = '64%';
+  elements.loadStatus.textContent = language === 'zh' ? '正在构建五站闭环路线...' : 'BUILDING THE FIVE-STOP ROUTE...';
+  world = createWorld(scene, physics, rendering.renderer, quality, matureAssets);
 
   elements.loadBar.style.width = '82%';
   elements.loadStatus.textContent = language === 'zh' ? '正在校准 DNA ROVER 悬挂...' : 'CALIBRATING ROVER SUSPENSION...';
@@ -284,6 +294,8 @@ async function initialize3D() {
     physics,
     onImpact: (strength) => audio.impact(strength),
   });
+  cameraRig = createStableCamera({ camera, canvas: elements.canvas, reducedMotion });
+  cameraRig.snap(vehicle.position);
 
   buildRadar();
   updateQuality();
@@ -305,6 +317,7 @@ async function initialize3D() {
       accumulator -= physics.fixedStep;
     }
 
+    cameraRig.update(delta, vehicle.position);
     world.update(elapsed, delta, vehicle.position);
     if (started && !activeDistrict) {
       const found = world.collectNear(vehicle.position);
@@ -377,5 +390,5 @@ window.addEventListener('keydown', (event) => {
 updateLanguage();
 elements.quality.textContent = 'Q: ' + quality.toUpperCase();
 
-if (!supportsWebGL() || reducedMotion) showFallback();
+if (!supportsWebGL()) showFallback();
 else initialize3D().catch(showFallback);

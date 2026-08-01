@@ -7,7 +7,11 @@ describe('project transit content', () => {
     expect(districts.every((district) => district.href && district.title.zh && district.title.en)).toBe(true);
   });
 
-  it('limits the authored world to the hub and featured lab', () => {
-    expect(physicalDistricts.map((district) => district.id)).toEqual(['origin', 'scrna']);
+  it('places all five projects on the driveable route', () => {
+    expect(physicalDistricts).toHaveLength(5);
+    expect(new Set(physicalDistricts.map((district) => district.id))).toEqual(
+      new Set(['origin', 'scrna', 'bulk', 'medagent', 'llmpet']),
+    );
+    expect(physicalDistricts.every((district) => district.position.length === 2)).toBe(true);
   });
 });

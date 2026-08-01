@@ -332,48 +332,11 @@ export function createVehicleController({
     updateCamera(delta);
   }
 
-  function updateCamera(delta) {
-    const rotation = body.rotation();
-    bodyQuaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
-    forward.set(0, 0, 1).applyQuaternion(bodyQuaternion).normalize();
-    cameraDirection.copy(forward).applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraYaw);
-
-    lookTarget.copy(rover.position).addScaledVector(forward, 2.2);
-    lookTarget.y += 0.58;
-    desiredCamera.copy(rover.position).addScaledVector(cameraDirection, -8.2);
-    desiredCamera.y += 3.8 + cameraPitch * 4.8;
-
-    const obstruction = physics.castSegment(lookTarget, desiredCamera, body);
-    if (obstruction !== null) {
-      tempVector.copy(desiredCamera).sub(lookTarget).normalize();
-      desiredCamera.copy(lookTarget).addScaledVector(tempVector, Math.max(1.8, obstruction - 0.42));
-    }
-
-    for (const axis of ['x', 'y', 'z']) {
-      const result = springScalar(
-        camera.position[axis],
-        desiredCamera[axis],
-        cameraVelocity[axis],
-        8.2,
-        0.95,
-        delta,
-      );
-      camera.position[axis] = result.value;
-      cameraVelocity[axis] = result.velocity;
-    }
-
-    shake *= Math.pow(0.035, delta);
-    if (shake > 0.002) {
-      camera.position.x += (Math.random() - 0.5) * shake * 0.24;
-      camera.position.y += (Math.random() - 0.5) * shake * 0.14;
-    }
-    camera.lookAt(lookTarget);
-    camera.fov = THREE.MathUtils.lerp(camera.fov, cameraFov(rayVehicle.currentVehicleSpeed()), 0.08);
-    camera.updateProjectionMatrix();
+  function updateCamera() {
+    // The world camera owns a fixed direction; vehicle heading never rotates the view.
   }
 
   reset();
-  camera.position.set(0, 5.2, 47);
 
   return {
     rover,

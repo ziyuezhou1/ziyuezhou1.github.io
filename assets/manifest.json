@@ -2,13 +2,31 @@
   "schemaVersion": 1,
   "bundledAssets": [
     {
+      "id": "quaternius-cyberpunk-platform-4x4",
+      "path": "public/assets/models/quaternius/Platform_4x4.gltf",
+      "kind": "gltf-model",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/cyberpunkgamekit.html",
+      "notes": "Original embedded glTF from the Cyberpunk Game Kit. Meshes, materials, and embedded texture are preserved; runtime code only clones and transforms it."
+    },
+    {
+      "id": "quaternius-cyberpunk-platform-2x1",
+      "path": "public/assets/models/quaternius/Platform_2x1_Empty.gltf",
+      "kind": "gltf-model",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "source": "https://quaternius.com/packs/cyberpunkgamekit.html",
+      "notes": "Original embedded glTF from the Cyberpunk Game Kit, reused as modular route gateways without mesh or material edits."
+    },
+    {
       "id": "procedural-rain-lab",
       "path": "procedural://src/world.js",
       "kind": "runtime-geometry",
       "author": "Ziyue Zhou project",
       "license": "LicenseRef-Project-Original",
       "source": "src/world.js",
-      "notes": "Transit hub, laboratory architecture, wet road, rain, props, data fragments, and skyline are generated at runtime."
+      "notes": "Route surfaces, laboratory architecture, wet road, rain, props, data fragments, and skyline are generated at runtime around the CC0 kit pieces."
     },
     {
       "id": "procedural-dna-rover",
@@ -31,16 +49,22 @@
   ],
   "approvedCc0Sources": [
     {
+      "name": "Quaternius",
+      "url": "https://quaternius.com/packs/cyberpunkgamekit.html",
+      "license": "CC0-1.0",
+      "status": "Primary mature art source; two original glTF modules are bundled."
+    },
+    {
       "name": "Kenney",
       "url": "https://kenney.nl/",
       "license": "CC0-1.0",
-      "status": "Approved source; no binary from this source is bundled in this vertical slice."
+      "status": "Approved secondary source; no binary is currently bundled."
     },
     {
       "name": "Poly Haven",
       "url": "https://polyhaven.com/",
       "license": "CC0-1.0",
-      "status": "Approved source; no binary from this source is bundled in this vertical slice."
+      "status": "Approved secondary source; no binary is currently bundled."
     }
   ]
 }

@@ -337,7 +337,98 @@ function addStreetFurniture(scene, physics, mediumDetail) {
   scene.add(mediumDetail);
 }
 
-export function createWorld(scene, physics, renderer, initialQuality = 'medium') {
+
+const ROUTE_ORDER = ['origin', 'llmpet', 'medagent', 'scrna', 'bulk', 'origin'];
+
+function addRouteNetwork(scene) {
+  const nodes = new Map(physicalDistricts.map((district) => [district.id, district]));
+  const roadMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0x0a1013,
+    roughness: 0.24,
+    metalness: 0.55,
+    clearcoat: 0.85,
+    clearcoatRoughness: 0.12,
+  });
+  const edgeMaterial = glow('#31bac2', 1.25);
+
+  for (let index = 0; index < ROUTE_ORDER.length - 1; index += 1) {
+    const from = nodes.get(ROUTE_ORDER[index]);
+    const to = nodes.get(ROUTE_ORDER[index + 1]);
+    if (!from || !to) continue;
+    const dx = to.position[0] - from.position[0];
+    const dz = to.position[1] - from.position[1];
+    const length = Math.hypot(dx, dz);
+    const segment = new THREE.Group();
+    addBox(segment, [7.8, 0.055, length], [0, 0, 0], roadMaterial);
+    addBox(segment, [0.08, 0.075, length], [-3.72, 0.045, 0], edgeMaterial);
+    addBox(segment, [0.08, 0.075, length], [3.72, 0.045, 0], edgeMaterial);
+    segment.position.set(
+      (from.position[0] + to.position[0]) * 0.5,
+      0.035,
+      (from.position[1] + to.position[1]) * 0.5,
+    );
+    segment.rotation.y = Math.atan2(dx, dz);
+    scene.add(segment);
+  }
+}
+
+function addMatureDistricts(scene, physics, matureAssets, landmarks, mediumDetail) {
+  if (!matureAssets?.available) return;
+
+  const authoredIds = new Set(['bulk', 'medagent', 'llmpet']);
+  for (const district of physicalDistricts) {
+    if (!authoredIds.has(district.id)) continue;
+    const group = new THREE.Group();
+    group.position.set(district.position[0], 0, district.position[1]);
+
+    const model = matureAssets.clone('platform4') || matureAssets.clone('platform2');
+    if (model) {
+      model.scale.setScalar(1.78);
+      model.position.y = 6.68;
+      model.rotation.y = district.id === 'bulk' ? Math.PI * 0.5 : district.id === 'llmpet' ? Math.PI : 0;
+      group.add(model);
+    }
+
+    const label = labelSprite(district.code, district.color);
+    label.position.set(0, 9.2, 0);
+    group.add(label);
+    const beacon = new THREE.Mesh(new THREE.TorusGeometry(4.4, 0.06, 8, 48), glow(district.color, 1.8));
+    beacon.rotation.x = Math.PI / 2;
+    beacon.position.y = 0.15;
+    group.add(beacon);
+    const light = new THREE.PointLight(district.color, 42, 15, 2);
+    light.position.y = 5.5;
+    group.add(light);
+
+    scene.add(group);
+    landmarks.set(district.id, group);
+    physics.addFixedBox({
+      position: [district.position[0], 2.1, district.position[1]],
+      size: [8.2, 4.2, 7.2],
+      friction: 1.1,
+    });
+  }
+
+  const gatewaySites = [
+    { id: 'origin', offset: [-8.5, 0], rotation: Math.PI * 0.5 },
+    { id: 'scrna', offset: [8.5, 0], rotation: -Math.PI * 0.5 },
+  ];
+  for (const site of gatewaySites) {
+    const district = physicalDistricts.find((item) => item.id === site.id);
+    const connector = matureAssets.clone('platform2');
+    if (!district || !connector) continue;
+    connector.scale.setScalar(1.35);
+    connector.position.set(
+      district.position[0] + site.offset[0],
+      5.1,
+      district.position[1] + site.offset[1],
+    );
+    connector.rotation.y = site.rotation;
+    mediumDetail.add(connector);
+  }
+}
+
+export function createWorld(scene, physics, renderer, initialQuality = 'medium', matureAssets = null) {
   const random = seededRandom(221022);
   const animated = [];
   const mediumDetail = new THREE.Group();
@@ -412,6 +503,7 @@ export function createWorld(scene, physics, renderer, initialQuality = 'medium')
   const laneMaterial = glow('#46e7e1', 2.2);
   for (const x of [-6.7, 6.7]) addBox(scene, [0.08, 0.035, 88], [x, 0.055, -1], laneMaterial);
   for (let z = 39; z > -42; z -= 5) addBox(scene, [0.08, 0.025, 2.3], [0, 0.05, z], laneMaterial);
+  addRouteNetwork(scene);
 
   for (let index = 0; index < 16; index += 1) {
     const puddle = new THREE.Mesh(
@@ -434,6 +526,7 @@ export function createWorld(scene, physics, renderer, initialQuality = 'medium')
   addStreetFurniture(scene, physics, mediumDetail);
   landmarks.set('origin', addTransitHub(scene, physics, animated));
   landmarks.set('scrna', addSingleCellLab(scene, physics, animated, highDetail));
+  addMatureDistricts(scene, physics, matureAssets, landmarks, mediumDetail);
 
   const rampRotation = quaternionFromEuler(-0.23, 0, 0);
   const ramp = addBox(scene, [7.4, 0.5, 9.5], [10.5, 1.25, 1], surface(0x253038, 0.34, 0.78), [-0.23, 0, 0]);
@@ -461,7 +554,7 @@ export function createWorld(scene, physics, renderer, initialQuality = 'medium')
 
   const fragmentGeometry = new THREE.OctahedronGeometry(0.38, 0);
   const fragmentMaterial = glow('#f4e65b', 4.8);
-  const fragmentPositions = [[-3.2, 1.5, 31], [3.4, 1.5, 25], [-4.4, 1.5, 14], [3.2, 1.5, 7], [-2.8, 1.5, -3], [4.2, 1.5, -11], [-3.5, 1.5, -17], [0, 1.5, -22]];
+  const fragmentPositions = [[0, 1.5, 31], [14, 1.5, 23], [25, 1.5, 7], [23, 1.5, -15], [10, 1.5, -26], [-7, 1.5, -27], [-23, 1.5, -16], [-18, 1.5, 8]];
   fragmentPositions.forEach((position, index) => {
     const mesh = new THREE.Mesh(fragmentGeometry, fragmentMaterial);
     mesh.position.set(...position);
