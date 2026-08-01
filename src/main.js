@@ -28,7 +28,7 @@ const elements = Object.fromEntries([
   ['toast', '#toast'], ['fallback', '#fallback'], ['fallbackCopy', '#fallback-copy'],
   ['fallbackList', '#fallback-list'], ['raceButton', '#race-button'], ['raceHud', '#race-hud'],
   ['raceState', '#race-state'], ['raceTime', '#race-time'], ['raceBest', '#race-best'],
-  ['raceCheckpoint', '#race-checkpoint'], ['raceCancel', '#race-cancel'],
+  ['raceCheckpoint', '#race-checkpoint'], ['raceSplit', '#race-split'], ['raceCancel', '#race-cancel'],
 ].map(([key, selector]) => [key, document.querySelector(selector)]));
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -47,6 +47,9 @@ let nearbyDistrict = null;
 let started = false;
 let stampCount = 0;
 let toastTimer = 0;
+let lastCheckpointEvent = 0;
+let lastRaceRespawnAt = 0;
+let raceFinishHandled = false;
 let rendering;
 let physics;
 let world;
@@ -282,20 +285,28 @@ function updateTelemetry() {
 function startRace() {
   if (!started || !race) return;
   closeProject();
-  vehicle.teleport(0, 40, 0, 28);
+  const spawn = world.raceStart;
+  vehicle.teleport(spawn.x, spawn.z, spawn.targetX, spawn.targetZ);
+  lastCheckpointEvent = 0;
+  lastRaceRespawnAt = performance.now();
+  raceFinishHandled = false;
   race.start();
+  const snapshot = race.snapshot();
+  world.setRaceSnapshot(snapshot);
   world.setActiveCheckpoint(0);
   elements.raceHud.hidden = false;
   elements.prompt.hidden = true;
   document.body.dataset.race = 'countdown';
-  setToast(language === 'zh' ? '准备：3 · 2 · 1' : 'Ready: 3 · 2 · 1');
+  setToast(language === 'zh' ? '车辆已就位 · 等待起跑灯' : 'On the grid · Watch the lights');
 }
 
 function cancelRace() {
   race?.cancel();
   world?.setActiveCheckpoint(-1);
+  world?.setRaceSnapshot(null);
   elements.raceHud.hidden = true;
   document.body.dataset.race = 'idle';
+  raceFinishHandled = false;
 }
 
 function updateRace() {
@@ -305,7 +316,30 @@ function updateRace() {
   elements.raceHud.hidden = !active;
   elements.raceTime.textContent = formatRaceTime(snapshot.elapsed);
   elements.raceBest.textContent = snapshot.best ? formatRaceTime(snapshot.best) : '--:--.---';
-  elements.raceCheckpoint.textContent = Math.min(snapshot.checkpointIndex + 1, snapshot.checkpointTotal) + ' / ' + snapshot.checkpointTotal;
+  elements.raceCheckpoint.textContent =
+    Math.min(snapshot.checkpointIndex + 1, snapshot.checkpointTotal) + ' / ' + snapshot.checkpointTotal;
+  elements.raceSplit.textContent = snapshot.lastSplit ? formatRaceTime(snapshot.lastSplit) : '--:--.---';
+  world.setRaceSnapshot(snapshot);
+
+  if (snapshot.checkpointEvent > lastCheckpointEvent) {
+    lastCheckpointEvent = snapshot.checkpointEvent;
+    if (snapshot.state !== RACE_STATES.FINISHED) {
+      setToast((language === 'zh' ? '分段 ' : 'SPLIT ') + formatRaceTime(snapshot.lastSplit));
+      audio.ui();
+    }
+  }
+
+  if (
+    snapshot.state === RACE_STATES.RACING &&
+    world.isOffCircuit(vehicle.position) &&
+    performance.now() - lastRaceRespawnAt > 1200
+  ) {
+    const respawn = world.getRaceRespawn(snapshot.checkpointIndex);
+    vehicle.teleport(respawn.x, respawn.z, respawn.targetX, respawn.targetZ);
+    lastRaceRespawnAt = performance.now();
+    setToast(language === 'zh' ? '返回最近检查点' : 'Back to the last gate');
+  }
+
   if (snapshot.state === RACE_STATES.COUNTDOWN) {
     elements.raceState.textContent = String(snapshot.countdown);
   } else if (snapshot.state === RACE_STATES.RACING) {
@@ -313,6 +347,16 @@ function updateRace() {
     world.setActiveCheckpoint(snapshot.checkpointIndex);
   } else if (snapshot.state === RACE_STATES.FINISHED) {
     elements.raceState.textContent = language === 'zh' ? '完成' : 'FINISH';
+    world.setActiveCheckpoint(-1);
+    if (!raceFinishHandled) {
+      raceFinishHandled = true;
+      setToast(
+        (language === 'zh' ? '完赛 · ' : 'FINISH · ') +
+        formatRaceTime(snapshot.elapsed),
+      );
+      audio.ui();
+    }
+  } else {
     world.setActiveCheckpoint(-1);
   }
   document.body.dataset.race = snapshot.state;
@@ -343,7 +387,7 @@ async function initialize3D() {
   await assets.preloadCore();
 
   elements.loadBar.style.width = '72%';
-  elements.loadStatus.textContent = language === 'zh' ? '正在布置城市环线...' : 'ASSEMBLING THE CITY LOOP...';
+  elements.loadStatus.textContent = language === 'zh' ? '正在布置探索道路与南侧赛车场...' : 'ASSEMBLING ROADS + SOUTH CIRCUIT...';
   world = createWorld(scene, physics, rendering.renderer, quality, assets, reducedMotion);
 
   const carConfig = VEHICLES.find((item) => item.id === selectedVehicle) || VEHICLES[0];
