@@ -376,12 +376,12 @@ a:focus-visible {
   top: 90px;
   left: 18px;
   display: flex;
-  width: min(385px, calc(100vw - 36px));
+  width: min(350px, calc(100vw - 36px));
   gap: 13px;
   padding: 14px;
   border: 1px solid rgba(41, 50, 52, 0.1);
   border-radius: 12px;
-  background: var(--paper);
+  background: rgba(255, 251, 242, 0.84);
   box-shadow: 0 10px 28px rgba(57, 76, 69, 0.1);
   backdrop-filter: blur(14px);
 }
@@ -486,9 +486,21 @@ kbd {
 
 .radar-route {
   position: absolute;
-  inset: 15%;
+  inset: 15% 17% 18% 15%;
+  transform: rotate(-9deg);
   border: 4px solid rgba(41, 50, 52, 0.14);
-  border-radius: 13px;
+  border-radius: 48% 52% 43% 57% / 55% 42% 58% 45%;
+}
+
+.radar-route::after {
+  position: absolute;
+  right: 10%;
+  bottom: -18%;
+  width: 44%;
+  height: 34%;
+  border: 3px solid rgba(231, 111, 81, 0.32);
+  border-radius: 50%;
+  content: '';
 }
 
 #radar-points span,
@@ -534,7 +546,7 @@ kbd {
   top: 88px;
   left: 50%;
   display: grid;
-  grid-template-columns: 74px repeat(3, auto) auto;
+  grid-template-columns: 64px repeat(4, minmax(98px, auto)) auto;
   gap: 1px;
   align-items: stretch;
   transform: translateX(-50%);
@@ -556,8 +568,8 @@ kbd {
 }
 
 .race-hud div {
-  min-width: 112px;
-  padding: 10px 13px;
+  min-width: 98px;
+  padding: 9px 11px;
   border-left: 1px solid var(--line);
 }
 
@@ -784,6 +796,13 @@ body[data-race='racing'] .mission-chip,
 body[data-race='countdown'] .proximity-prompt,
 body[data-race='racing'] .proximity-prompt { display: none; }
 
+body[data-race='racing'] .race-hud {
+  border-color: rgba(231, 111, 81, 0.3);
+  background: rgba(255, 251, 242, 0.82);
+}
+
+body[data-race='racing'] .telemetry { opacity: 0.78; }
+
 @media (max-width: 1040px) {
   .boot-screen { grid-template-columns: minmax(0, 720px); }
   .boot-card,
@@ -817,9 +836,11 @@ body[data-race='racing'] .proximity-prompt { display: none; }
   .race-hud {
     top: 72px;
     width: calc(100vw - 18px);
-    grid-template-columns: 54px repeat(3, 1fr);
+    grid-template-columns: 50px repeat(4, 1fr);
   }
-  .race-hud div { min-width: 0; padding: 8px 7px; }
+  .race-hud div { min-width: 0; padding: 7px 5px; }
+  .race-hud span { font-size: 0.43rem; }
+  .race-hud strong { font-size: 0.61rem; }
   .race-hud button { grid-column: 1 / -1; min-height: 30px; border-top: 1px solid var(--line); }
   .race-hud > p { font-size: 1.1rem; }
 
