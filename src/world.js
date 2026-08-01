@@ -10,6 +10,14 @@ const CHECKPOINTS = [
   [0, 38],
 ];
 
+export const BUILDING_SIZE_FACTOR = 0.5;
+
+export function modelTargetSize(id, size) {
+  return id === 'garage' || id.startsWith('building')
+    ? size * BUILDING_SIZE_FACTOR
+    : size;
+}
+
 const ZONE_LAYOUTS = {
   north: [
     ['buildingA', [-23, 0, 18], 0.3, 8],
@@ -130,7 +138,7 @@ function addRoadLoop(scene) {
 }
 
 function addModel(group, assets, id, position, rotation, size) {
-  const model = assets.clone(id, size);
+  const model = assets.clone(id, modelTargetSize(id, size));
   if (!model) return null;
   model.position.set(...position);
   model.rotation.y = rotation;
@@ -328,9 +336,11 @@ export function createWorld(scene, physics, renderer, initialQuality = 'medium',
     for (const [id, position, rotation, size] of ZONE_LAYOUTS[zoneId]) {
       const model = addModel(group, assets, id, position, rotation, size);
       if (model && id.startsWith('building')) {
+        const footprint = modelTargetSize(id, size);
+        const colliderHeight = footprint * 0.65;
         physics.addFixedBox({
-          position: [position[0], 2.5, position[2]],
-          size: [size * 0.72, 5, size * 0.72],
+          position: [position[0], colliderHeight * 0.5, position[2]],
+          size: [footprint * 0.72, colliderHeight, footprint * 0.72],
           friction: 1.05,
         });
       }
