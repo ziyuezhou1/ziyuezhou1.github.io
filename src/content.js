@@ -1,0 +1,135 @@
+export const copy = {
+  zh: {
+    status: 'SYSTEM ONLINE',
+    missionTitle: '探索基因数据城',
+    missionCopy: '沿霓虹道路驾驶，靠近数据节点后按 E 查看项目。',
+    drive: '驾驶',
+    boost: '加速',
+    brake: '刹车',
+    reset: '复位',
+    nodes: '城市节点',
+    visit: '访问数据节点',
+    openGithub: '查看 GitHub',
+    resume: 'A4 简历',
+    soundOn: '声音：开',
+    soundOff: '声音：关',
+    fallback:
+      '当前设备未启用 WebGL 或偏好减少动态效果。你仍可访问全部项目。',
+  },
+  en: {
+    status: 'SYSTEM ONLINE',
+    missionTitle: 'Explore Genome City',
+    missionCopy: 'Drive the neon routes. Press E near a data node to inspect the project.',
+    drive: 'Drive',
+    boost: 'Boost',
+    brake: 'Brake',
+    reset: 'Reset',
+    nodes: 'City nodes',
+    visit: 'Access data node',
+    openGithub: 'View on GitHub',
+    resume: 'A4 Resume',
+    soundOn: 'Sound: on',
+    soundOff: 'Sound: off',
+    fallback:
+      'WebGL is unavailable or reduced motion is enabled. Every project remains accessible below.',
+  },
+};
+
+export const districts = [
+  {
+    id: 'origin',
+    code: 'NODE_00 // ORIGIN',
+    title: { zh: '中央接入站', en: 'Central Access Hub' },
+    subtitle: { zh: '周子悦 · 生物信息与 AI 工程', en: 'Ziyue Zhou · Bioinformatics & AI Engineering' },
+    description: {
+      zh: '具备生物学与计算分析交叉背景，能够完成从原始数据质控、统计建模到科研可视化与 AI 工具开发的完整闭环。',
+      en: 'A cross-disciplinary builder connecting biology, computational analysis, scientific visualization, and practical AI engineering.',
+    },
+    highlights: {
+      zh: ['上海交通大学本科', '中国科学院大学硕士', 'R / Python / Shell / AI 工作流'],
+      en: ['BSc, Shanghai Jiao Tong University', 'MSc, University of Chinese Academy of Sciences', 'R / Python / Shell / AI workflows'],
+    },
+    tags: ['BIOINFORMATICS', 'MULTI-OMICS', 'AI'],
+    color: '#fcee0a',
+    position: [0, 0],
+    radius: 8,
+  },
+  {
+    id: 'scrna',
+    code: 'NODE_01 // SINGLE CELL',
+    title: { zh: '单细胞转录组分析管线', en: 'Single-cell RNA-seq Pipeline' },
+    subtitle: { zh: '从质控到调控网络的全流程', en: 'From quality control to regulatory networks' },
+    description: {
+      zh: '面向小鼠脑组织 snRNA-seq 的模块化分析管线，覆盖整合、注释、差异组成、SCENIC、亚群分析、伪时序与 pseudobulk。',
+      en: 'A modular snRNA-seq workflow for mouse brain tissue, spanning integration, annotation, differential composition, SCENIC, subclustering, trajectory inference, and pseudobulk analysis.',
+    },
+    highlights: {
+      zh: ['多分辨率细胞注释', 'pySCENIC / GRNBoost2 调控网络', 'Slingshot 与 Monocle2 伪时序'],
+      en: ['Multi-resolution cell annotation', 'pySCENIC / GRNBoost2 regulatory networks', 'Slingshot and Monocle2 trajectories'],
+    },
+    tags: ['SEURAT', 'R', 'PYSCENIC', 'SLURM'],
+    color: '#00f0ff',
+    position: [-27, 0],
+    radius: 9,
+    href: 'https://github.com/ziyuezhou1/scRNAseq-analysis-pipeline',
+  },
+  {
+    id: 'bulk',
+    code: 'NODE_02 // TRANSCRIPTOME',
+    title: { zh: 'Bulk RNA-seq 分析管线', en: 'Bulk RNA-seq Pipeline' },
+    subtitle: { zh: 'HPC 上的比对、定量与可变剪接', en: 'Alignment, quantification, and splicing on HPC' },
+    description: {
+      zh: '以 Shell 配置驱动的转录组处理流程，串联原始数据、RSEM 定量、二级分析与 MAJIQ/VOILA 可变剪接检查。',
+      en: 'A configuration-driven shell workflow connecting raw reads, RSEM quantification, downstream analysis, and MAJIQ/VOILA splicing inspection.',
+    },
+    highlights: {
+      zh: ['配置化批处理', 'SLURM 队列执行', '可重复的二级分析入口'],
+      en: ['Configuration-driven batches', 'SLURM queue execution', 'Repeatable downstream analysis entry point'],
+    },
+    tags: ['SHELL', 'RSEM', 'MAJIQ', 'HPC'],
+    color: '#ff2f7d',
+    position: [27, 0],
+    radius: 9,
+    href: 'https://github.com/ziyuezhou1/bulk_RNA_seq_analysis_pipeline',
+  },
+  {
+    id: 'medagent',
+    code: 'NODE_03 // MEDICAL AI',
+    title: { zh: 'MedAgent 医疗 AI 框架', en: 'MedAgent Medical AI Framework' },
+    subtitle: { zh: '多模态、RAG 与临床 Agent 协作', en: 'Multimodal models, RAG, and clinical agents' },
+    description: {
+      zh: '研究型医疗智能体框架，组织多模态模型、临床工作流、多专家会诊、PubMed RAG、知识图谱、安全护栏与可解释性模块。',
+      en: 'A research-oriented medical-agent framework combining multimodal models, clinical workflows, multi-expert collaboration, PubMed RAG, knowledge graphs, safety guardrails, and explainability.',
+    },
+    highlights: {
+      zh: ['Plan–Act–Reflect 临床流程', 'DICOM / FHIR / HL7 数据标准', '安全护栏与人工复核'],
+      en: ['Plan–Act–Reflect clinical workflow', 'DICOM / FHIR / HL7 standards', 'Guardrails and human review'],
+    },
+    tags: ['PYTHON', 'LANGGRAPH', 'RAG', 'DICOM'],
+    color: '#a970ff',
+    position: [-22, -31],
+    radius: 9,
+    href: 'https://github.com/ziyuezhou1/med-agent',
+  },
+  {
+    id: 'llmpet',
+    code: 'NODE_04 // AGENT UX',
+    title: { zh: 'LLMPET Agent 桌面宠物', en: 'LLMPET Agent Desktop Pet' },
+    subtitle: { zh: '把 Agent 状态变成可见、可操作的体验', en: 'Making agent state visible and actionable' },
+    description: {
+      zh: '面向 Claude Code 与 Codex 的桌面伴侣，通过状态机、事件适配器、权限交互、用量计量与多语言界面呈现 Agent 工作状态。',
+      en: 'A desktop companion for Claude Code and Codex that visualizes agent work through state machines, event adapters, permission interactions, local metering, and multilingual UI.',
+    },
+    highlights: {
+      zh: ['Claude hooks 与 Codex rollout 监听', '权限、状态与会话交互', 'Windows / macOS 工程实践'],
+      en: ['Claude hooks and Codex rollout monitoring', 'Permission, state, and session UX', 'Windows and macOS engineering'],
+    },
+    tags: ['ELECTRON', 'NODE.JS', 'STATE MACHINE', 'I18N'],
+    color: '#76ff5c',
+    position: [22, -31],
+    radius: 9,
+    href: 'https://github.com/ziyuezhou1/LLMPET',
+  },
+];
+
+export const worldBounds = 54;

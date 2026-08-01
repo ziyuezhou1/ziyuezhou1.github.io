@@ -1,106 +1,54 @@
-<pre align="center">
-╔══════════════════════════════════════════════════════════════════════════╗
-║                                                                          ║
-║   ██████╗██╗   ██╗██████╗ ███████╗██████╗ ██████╗ ██╗   ██╗███╗   ██╗██╗  ██╗
-║  ██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗██╔══██╗██║   ██║████╗  ██║██║ ██╔╝
-║  ██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝██████╔╝██║   ██║██╔██╗ ██║█████╔╝ 
-║  ██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗██╔═══╝ ██║   ██║██║╚██╗██║██╔═██╗ 
-║  ╚██████╗   ██║   ██████╔╝███████╗██║  ██║██║     ╚██████╔╝██║ ╚████║██║  ██╗
-║   ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝      ╚═════╝ ╚═╝  ╚══╝╚═╝  ╚═╝
-║                                                                          ║
-║   [ PERSONAL TERMINAL ]   [ STATUS: ACTIVE ]   [ CLASS: BIO_ANALYST ]    ║
-║                                                                          ║
-╚══════════════════════════════════════════════════════════════════════════╝
-</pre>
+# Genome City
 
-<p align="center">
-  <img src="https://img.shields.io/badge/DEPLOY-GitHub_Pages-00f0ff?style=for-the-badge&logo=github&logoColor=white&labelColor=0a0b10" />
-  <img src="https://img.shields.io/badge/STACK-Tailwind_CSS-ff003c?style=for-the-badge&logo=tailwindcss&logoColor=white&labelColor=0a0b10" />
-  <img src="https://img.shields.io/badge/STATUS-ACTIVE_SEEKING-fcee0a?style=for-the-badge&labelColor=0a0b10" />
-  <img src="https://img.shields.io/badge/A4_PRINT-READY-00f0ff?style=for-the-badge&labelColor=0a0b10" />
-</p>
+An immersive cyberpunk portfolio for bioinformatics and AI engineering. Visitors drive a lightweight DNA Rover through a procedural Three.js city and inspect project nodes for single-cell analysis, bulk RNA-seq, medical AI, and agent UX.
 
-<br />
+The original print-ready resume is preserved at [resume.html](resume.html).
 
-> **SYS.LOG** — 一个赛博朋克风格的生物信息工程师个人终端 / 简历页面。霓虹灯效、扫描线叠加、故障字体、技能进度条，一键导出 A4 PDF。直接部署于 GitHub Pages，访问即沉浸式体验。
+## Features
 
-<br />
+- Procedural Three.js world with no downloaded 3D models
+- Arcade keyboard and touch driving controls
+- Chinese and English interface with saved preferences
+- Automatic low, medium, and high quality modes
+- Accessible project directory when WebGL or motion is unavailable
+- Multi-page Vite build for the 3D portfolio and A4 resume
+- GitHub Pages build workflow, unit tests, and browser smoke tests
 
-## // FEATURES
+## Development
 
-<table>
-  <tr>
-    <td align="right" width="140"><code>MODULE_01</code></td>
-    <td><b>霓虹UI系统</b> — 赛博朋克配色 (Cyan / Pink / Yellow)、对角线网格背景、扫描线扫描特效</td>
-  </tr>
-  <tr>
-    <td align="right"><code>MODULE_02</code></td>
-    <td><b>故障风格排版</b> — Orbitron 标题 + Share Tech Mono 等宽 + 霓虹发光阴影 glitch text</td>
-  </tr>
-  <tr>
-    <td align="right"><code>MODULE_03</code></td>
-    <td><b>技能进度条</b> — R (95%) / Python (85%) / Shell (80%) / AI Tools (90%) 带发光动画</td>
-  </tr>
-  <tr>
-    <td align="right"><code>MODULE_04</code></td>
-    <td><b>A4 打印导出</b> — 专用 @media print 样式，点击 [SYS.EXPORT_PDF] 按钮即可保存为完美排版的PDF简历</td>
-  </tr>
-  <tr>
-    <td align="right"><code>MODULE_05</code></td>
-    <td><b>系统提示Toast</b> — 打印时自动弹出终端风格操作指引，指导用户正确导出PDF</td>
-  </tr>
-  <tr>
-    <td align="right"><code>MODULE_06</code></td>
-    <td><b>响应式A4布局</b> — 210mm×297mm 固定画布，屏幕浏览和打印双场景完美适配</td>
-  </tr>
-</table>
+Requires Node.js 20.19 or newer.
 
-<br />
+    npm install
+    npm run dev
+    npm test
+    npm run build
+    npm run preview
 
-## // TECH_STACK
+Run browser smoke tests after installing Chromium:
 
-```
-  [R ████████████████████░░] 95%    Omics / Stats / Plot
-  [Py █████████████████░░░░░] 85%    Data / Script
-  [Sh ████████████████░░░░░░░] 80%    Linux / Batch
-  [AI ██████████████████░░░░] 90%    Dev / Assist
-```
+    npx playwright install chromium
+    npm run test:e2e
 
-> **前端**: Tailwind CSS (CDN) + Phosphor Icons + Google Fonts (Orbitron, Rajdhani, Share Tech Mono)  
-> **部署**: GitHub Pages (自动构建，即时生效)  
-> **导出**: 浏览器原生 window.print() 触发，print CSS 精确控制 A4 排版
+## Controls
 
-<br />
+- W, A, S, D or arrow keys: drive and steer
+- Shift: boost
+- Space or left Control: brake
+- Drag: orbit the chase camera
+- E or Enter: open a nearby project node
+- R: return the rover to the city entrance
+- Escape: close the project panel
 
-## // COMMANDS
+Mobile devices receive touch steering, boost, and brake controls with low-quality rendering by default.
 
-```bash
-# 克隆到本地
-git clone https://github.com/ziyuezhou1/ziyuezhou1.github.io.git
+## Structure
 
-# 用任意浏览器打开即可预览
-open index.html
+- src/main.js coordinates rendering, UI, localization, and project proximity.
+- src/world.js builds the procedural city and landmark effects.
+- src/vehicle.js owns arcade driving, collisions, camera follow, and touch input.
+- src/content.js is the bilingual source of truth for profile and project copy.
+- resume.html is the preserved A4 print view.
 
-# 或在 VS Code 中启动 Live Server 获得热重载体验
-code .
-```
+## Deployment
 
-<br />
-
-## // DEPLOY
-
-本仓库已自动部署于 **GitHub Pages**，访问 [ziyuezhou1.github.io](https://ziyuezhou1.github.io) 即可查看。
-
-修改 `index.html` 并推送到 `main` 分支，GitHub Pages 会在 30 秒内自动重新构建。
-
-<br />
-
----
-
-<div align="center">
-
-```
-[SYS.END_OF_RECORD]
-```
-
-</div>
+The Pages workflow builds both entry pages into dist when main is updated. Development branches run CI only and do not deploy. Review the immersive branch before merging it into main.
