@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#c9dcda" />
-    <meta name="description" content="周子悦的可驾驶现代微缩城市作品集：探索五个项目街区，或完成一圈城市计时赛。" />
+    <meta name="description" content="周子悦的可驾驶现代微缩城市作品集：沿有机道路探索五个项目街区，或挑战独立南侧赛车场。" />
     <title>ZY / Mini City</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -21,7 +21,7 @@
         <p class="eyebrow">AN INTERACTIVE PORTFOLIO CITY</p>
         <h1 id="boot-title">Small city.<br /><span>Big ideas.</span></h1>
         <p id="boot-subtitle" class="boot-subtitle">
-          驾驶一辆玩具车穿过五个项目街区。自由探索，收集城市印章，或在城市环线挑战单圈计时。
+          驾驶一辆玩具车沿弯曲道路穿过五个项目街区。自由探索、撞开趣味道具，或前往南侧赛车场挑战单圈计时。
         </p>
 
         <div class="garage" aria-label="选择车辆">
@@ -45,7 +45,7 @@
       <aside class="boot-card" aria-hidden="true">
         <span>01</span><strong>Fixed 25° view</strong><small>Stable, readable, comfortable.</small>
         <span>02</span><strong>Five districts</strong><small>Research, AI, and engineering.</small>
-        <span>03</span><strong>One-lap race</strong><small>Optional. No leaderboard.</small>
+        <span>03</span><strong>Dedicated circuit</strong><small>8 gates, splits, and checkpoint recovery.</small>
       </aside>
     </section>
 
@@ -69,8 +69,8 @@
       <section class="mission-chip" aria-labelledby="mission-title">
         <span class="mission-index">CITY<br />GUIDE</span>
         <div>
-          <h2 id="mission-title">驾驶穿过五个项目街区</h2>
-          <small id="mission-copy">自由探索微缩城市，靠近彩色项目地标按 E；在橙色起点可开始单圈计时赛。</small>
+          <h2 id="mission-title">沿城市道路探索，或前往南侧赛车场</h2>
+          <small id="mission-copy">项目地标分布在弯曲主路旁；橙色旗帜指向独立赛车场，靠近起跑格按 E。</small>
         </div>
       </section>
 
@@ -78,14 +78,15 @@
         <p id="race-state">3</p>
         <div><span>TIME</span><strong id="race-time">00:00.000</strong></div>
         <div><span>BEST</span><strong id="race-best">--:--.---</strong></div>
-        <div><span>CHECKPOINT</span><strong id="race-checkpoint">1 / 6</strong></div>
+        <div><span>GATE</span><strong id="race-checkpoint">1 / 8</strong></div>
+        <div><span>LAST SPLIT</span><strong id="race-split">--:--.---</strong></div>
         <button id="race-cancel" type="button">退出计时赛</button>
       </section>
 
       <section class="telemetry" aria-label="车辆遥测">
         <div><strong id="speed-value">000</strong><span id="speed-label">时速</span></div>
         <div><strong id="fragment-value">00 / 08</strong><span id="fragment-label">城市印章</span></div>
-        <p id="zone-value">CITY LOOP</p>
+        <p id="zone-value">OPEN ROAD</p>
       </section>
 
       <div class="radar" aria-label="城市小地图">
