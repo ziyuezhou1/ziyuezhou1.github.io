@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { engineForce, steeringLimit } from './vehicleMath.js';
 
 export const VEHICLE_VISUAL_YAW = 0;
+export const JUMP_IMPULSE = 2400;
 
 const KEY_BINDINGS = {
   KeyW: 'forward', ArrowUp: 'forward',
@@ -214,7 +215,7 @@ export function createVehicleController({
     grounded = false;
     for (let index = 0; index < 4; index += 1) grounded ||= rayVehicle.wheelIsInContact(index);
     if (!locked && input.has('jump') && grounded && !jumpLatch) {
-      body.applyImpulse({ x: 0, y: 820, z: 0 }, true);
+      body.applyImpulse({ x: 0, y: JUMP_IMPULSE, z: 0 }, true);
       jumpLatch = true;
     }
     rayVehicle.updateVehicle(delta);
