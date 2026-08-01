@@ -283,7 +283,7 @@ async function initialize3D() {
 
   elements.loadBar.style.width = '64%';
   elements.loadStatus.textContent = language === 'zh' ? '正在构建五站闭环路线...' : 'BUILDING THE FIVE-STOP ROUTE...';
-  world = createWorld(scene, physics, rendering.renderer, quality, matureAssets);
+  world = createWorld(scene, physics, rendering.renderer, quality, matureAssets, reducedMotion);
 
   elements.loadBar.style.width = '82%';
   elements.loadStatus.textContent = language === 'zh' ? '正在校准 DNA ROVER 悬挂...' : 'CALIBRATING ROVER SUSPENSION...';

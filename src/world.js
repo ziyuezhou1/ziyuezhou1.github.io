@@ -428,7 +428,7 @@ function addMatureDistricts(scene, physics, matureAssets, landmarks, mediumDetai
   }
 }
 
-export function createWorld(scene, physics, renderer, initialQuality = 'medium', matureAssets = null) {
+export function createWorld(scene, physics, renderer, initialQuality = 'medium', matureAssets = null, reducedMotion = false) {
   const random = seededRandom(221022);
   const animated = [];
   const mediumDetail = new THREE.Group();
@@ -588,13 +588,15 @@ export function createWorld(scene, physics, renderer, initialQuality = 'medium',
 
   function setQuality(level) {
     mediumDetail.visible = level !== 'low';
-    highDetail.visible = level === 'high';
+    highDetail.visible = !reducedMotion && level === 'high';
+    rain.visible = !reducedMotion;
     rain.geometry.setDrawRange(0, { low: 440, medium: 1040, high: 1800 }[level]);
     moon.castShadow = level !== 'low';
   }
 
   function update(elapsed, delta, focus) {
-    for (const item of animated) {
+    if (!reducedMotion) {
+      for (const item of animated) {
       if (item.type === 'spin') {
         item.object.rotation.y += delta * item.speed;
         item.object.position.y = item.baseY + Math.sin(elapsed * item.speed * 2) * 0.16;
@@ -630,6 +632,8 @@ export function createWorld(scene, physics, renderer, initialQuality = 'medium',
     }
     rain.geometry.attributes.position.needsUpdate = true;
     if (focus) rain.position.set(focus.x, 0, focus.z);
+
+    }
 
     for (const item of dynamicObjects) {
       const position = item.body.translation();
