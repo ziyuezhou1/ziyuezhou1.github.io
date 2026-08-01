@@ -1,11 +1,9 @@
 import * as THREE from 'three';
-import { districts, copy, worldBounds } from './content.js';
-import {
-  chooseQuality,
-  detectLanguage,
-  localize,
-  nextQuality,
-} from './state.js';
+import { createAudioSystem } from './audio.js';
+import { copy, districts, physicalDistricts, worldBounds } from './content.js';
+import { createPhysics } from './physics.js';
+import { createRendering } from './rendering.js';
+import { chooseQuality, detectLanguage, localize, nextQuality } from './state.js';
 import { createVehicleController } from './vehicle.js';
 import { createWorld } from './world.js';
 
@@ -22,18 +20,25 @@ const elements = {
   controlDrive: document.querySelector('#control-drive'),
   controlBoost: document.querySelector('#control-boost'),
   controlBrake: document.querySelector('#control-brake'),
+  controlJump: document.querySelector('#control-jump'),
   controlReset: document.querySelector('#control-reset'),
-  districtTitle: document.querySelector('#district-title'),
-  districtCount: document.querySelector('#district-count'),
-  districtNavigation: document.querySelector('#district-navigation'),
+  projects: document.querySelector('#projects-button'),
   language: document.querySelector('#language-button'),
   quality: document.querySelector('#quality-button'),
   sound: document.querySelector('#sound-button'),
   resume: document.querySelector('#resume-link'),
+  speed: document.querySelector('#speed-value'),
+  speedLabel: document.querySelector('#speed-label'),
+  fragment: document.querySelector('#fragment-value'),
+  fragmentLabel: document.querySelector('#fragment-label'),
+  zone: document.querySelector('#zone-value'),
+  radarPoints: document.querySelector('#radar-points'),
+  radarRover: document.querySelector('#radar-rover'),
   prompt: document.querySelector('#proximity-prompt'),
   promptCopy: document.querySelector('#proximity-copy'),
   panel: document.querySelector('#project-panel'),
   panelClose: document.querySelector('#project-close'),
+  panelTabs: document.querySelector('#project-tabs'),
   panelCode: document.querySelector('#project-code'),
   panelTitle: document.querySelector('#project-title'),
   panelSubtitle: document.querySelector('#project-subtitle'),
@@ -42,8 +47,7 @@ const elements = {
   panelTags: document.querySelector('#project-tags'),
   panelLink: document.querySelector('#project-link'),
   panelLinkCopy: document.querySelector('#project-link-copy'),
-  radarPoints: document.querySelector('#radar-points'),
-  radarRover: document.querySelector('#radar-rover'),
+  toast: document.querySelector('#toast'),
   fallback: document.querySelector('#fallback'),
   fallbackCopy: document.querySelector('#fallback-copy'),
   fallbackList: document.querySelector('#fallback-list'),
@@ -51,90 +55,138 @@ const elements = {
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let language = detectLanguage(window.localStorage, navigator.language);
-let quality =
-  window.localStorage.getItem('genome-city-quality') ||
-  chooseQuality({
-    width: window.innerWidth,
-    dpr: window.devicePixelRatio,
-    cores: navigator.hardwareConcurrency,
-    reducedMotion,
-  });
-let soundEnabled = false;
-let audioContext;
-let renderer;
-let camera;
-let world;
-let vehicle;
+let quality = window.localStorage.getItem('cell-drive-quality') || chooseQuality({
+  width: window.innerWidth,
+  dpr: window.devicePixelRatio,
+  cores: navigator.hardwareConcurrency,
+  reducedMotion,
+});
 let activeDistrict = null;
 let nearbyDistrict = null;
 let started = false;
-const visited = new Set();
+let fragmentCount = 0;
+let toastTimer = 0;
+let rendering;
+let physics;
+let world;
+let vehicle;
+let camera;
+const audio = createAudioSystem();
 
 function supportsWebGL() {
   try {
-    const testCanvas = document.createElement('canvas');
-    return Boolean(testCanvas.getContext('webgl2') || testCanvas.getContext('webgl'));
+    const canvas = document.createElement('canvas');
+    return Boolean(canvas.getContext('webgl2') || canvas.getContext('webgl'));
   } catch {
     return false;
   }
 }
 
-function beep(frequency = 520, duration = 0.06) {
-  if (!soundEnabled) return;
-  audioContext ||= new AudioContext();
-  const oscillator = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-  oscillator.frequency.value = frequency;
-  oscillator.type = 'square';
-  gain.gain.setValueAtTime(0.035, audioContext.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
-  oscillator.connect(gain).connect(audioContext.destination);
-  oscillator.start();
-  oscillator.stop(audioContext.currentTime + duration);
-}
-
-function buildNavigation() {
-  elements.districtNavigation.replaceChildren();
-  districts.forEach((district, index) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.dataset.districtId = district.id;
-    button.style.setProperty('--node-color', district.color);
-
-    const code = document.createElement('span');
-    code.textContent = String(index).padStart(2, '0');
-    const title = document.createElement('strong');
-    title.textContent = localize(district.title, language);
-    button.append(code, title);
-
-    button.addEventListener('click', () => {
-      if (!vehicle) return;
-      const [x, z] = district.position;
-      vehicle.teleport(x, z + district.radius + 5, x, z);
-      beep(620, 0.08);
-      window.setTimeout(() => openProject(district), 280);
-    });
-    elements.districtNavigation.append(button);
-  });
+function setToast(message) {
+  window.clearTimeout(toastTimer);
+  elements.toast.textContent = message;
+  elements.toast.classList.add('is-visible');
+  toastTimer = window.setTimeout(() => elements.toast.classList.remove('is-visible'), 1900);
 }
 
 function buildRadar() {
   elements.radarPoints.replaceChildren();
-  for (const district of districts) {
+  for (const district of physicalDistricts) {
     const point = document.createElement('span');
-    point.className = 'radar-point';
-    point.dataset.districtId = district.id;
     point.style.setProperty('--node-color', district.color);
-    point.style.left = 50 + (district.position[0] / worldBounds) * 44 + '%';
-    point.style.top = 50 + (district.position[1] / worldBounds) * 44 + '%';
+    point.style.left = 50 + (district.position[0] / worldBounds) * 42 + '%';
+    point.style.top = 50 + (district.position[1] / worldBounds) * 42 + '%';
+    point.dataset.districtId = district.id;
     elements.radarPoints.append(point);
   }
 }
 
 function updateRadar() {
   if (!vehicle) return;
-  elements.radarRover.style.left = 50 + (vehicle.position.x / worldBounds) * 44 + '%';
-  elements.radarRover.style.top = 50 + (vehicle.position.z / worldBounds) * 44 + '%';
+  elements.radarRover.style.left = 50 + (vehicle.position.x / worldBounds) * 42 + '%';
+  elements.radarRover.style.top = 50 + (vehicle.position.z / worldBounds) * 42 + '%';
+}
+
+function renderFallbackCards() {
+  elements.fallbackList.replaceChildren();
+  for (const district of districts) {
+    const card = document.createElement('article');
+    card.style.setProperty('--node-color', district.color);
+    const code = document.createElement('small');
+    code.textContent = district.code;
+    const title = document.createElement('h2');
+    title.textContent = localize(district.title, language);
+    const description = document.createElement('p');
+    description.textContent = localize(district.description, language);
+    const link = document.createElement('a');
+    link.href = district.href;
+    link.target = '_blank';
+    link.rel = 'noreferrer';
+    link.textContent = copy[language].openGithub + ' ↗';
+    card.append(code, title, description, link);
+    elements.fallbackList.append(card);
+  }
+}
+
+function buildProjectTabs() {
+  elements.panelTabs.replaceChildren();
+  districts.forEach((district, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.districtId = district.id;
+    button.style.setProperty('--node-color', district.color);
+    button.innerHTML = '<span>' + String(index).padStart(2, '0') + '</span><b>' +
+      localize(district.title, language) + '</b>';
+    button.addEventListener('click', () => {
+      renderProject(district);
+      audio.ui();
+    });
+    elements.panelTabs.append(button);
+  });
+}
+
+function renderProject(district) {
+  activeDistrict = district;
+  elements.panel.style.setProperty('--active-color', district.color);
+  elements.panelCode.textContent = district.code;
+  elements.panelTitle.textContent = localize(district.title, language);
+  elements.panelSubtitle.textContent = localize(district.subtitle, language);
+  elements.panelDescription.textContent = localize(district.description, language);
+  elements.panelHighlights.replaceChildren();
+  for (const highlight of district.highlights[language]) {
+    const item = document.createElement('li');
+    item.textContent = highlight;
+    elements.panelHighlights.append(item);
+  }
+  elements.panelTags.replaceChildren();
+  for (const tag of district.tags) {
+    const chip = document.createElement('span');
+    chip.textContent = tag;
+    elements.panelTags.append(chip);
+  }
+  elements.panelLink.href = district.href;
+  elements.panelLink.hidden = !district.href;
+  elements.panelLinkCopy.textContent = copy[language].openGithub;
+  elements.panelTabs.querySelectorAll('button').forEach((button) => {
+    button.classList.toggle('is-active', button.dataset.districtId === district.id);
+  });
+}
+
+function openProject(district = districts[0]) {
+  renderProject(district);
+  elements.panel.hidden = false;
+  elements.prompt.hidden = true;
+  document.body.dataset.terminal = 'open';
+  elements.panelClose.focus();
+  audio.ui();
+}
+
+function closeProject() {
+  elements.panel.hidden = true;
+  activeDistrict = null;
+  document.body.dataset.terminal = 'closed';
+  if (nearbyDistrict) elements.prompt.hidden = false;
+  audio.ui();
 }
 
 function updateLanguage() {
@@ -146,88 +198,18 @@ function updateLanguage() {
   elements.controlDrive.textContent = text.drive;
   elements.controlBoost.textContent = text.boost;
   elements.controlBrake.textContent = text.brake;
+  elements.controlJump.textContent = text.jump;
   elements.controlReset.textContent = text.reset;
-  elements.districtTitle.textContent = text.nodes.toUpperCase();
   elements.promptCopy.textContent = text.visit;
   elements.resume.textContent = text.resume;
-  elements.panelLinkCopy.textContent = text.openGithub;
-  elements.sound.textContent = soundEnabled ? text.soundOn.toUpperCase() : text.soundOff.toUpperCase();
+  elements.sound.textContent = audio.enabled ? text.soundOn.toUpperCase() : text.soundOff.toUpperCase();
   elements.language.textContent = language === 'zh' ? 'EN' : '中文';
+  elements.speedLabel.textContent = text.speed;
+  elements.fragmentLabel.textContent = text.fragments;
   elements.fallbackCopy.textContent = text.fallback;
-  buildNavigation();
   renderFallbackCards();
+  buildProjectTabs();
   if (activeDistrict) renderProject(activeDistrict);
-}
-
-function renderProject(district) {
-  activeDistrict = district;
-  elements.panel.style.setProperty('--active-color', district.color);
-  elements.panelCode.textContent = district.code;
-  elements.panelTitle.textContent = localize(district.title, language);
-  elements.panelSubtitle.textContent = localize(district.subtitle, language);
-  elements.panelDescription.textContent = localize(district.description, language);
-  elements.panelHighlights.replaceChildren();
-
-  for (const highlight of district.highlights[language]) {
-    const item = document.createElement('li');
-    item.textContent = highlight;
-    elements.panelHighlights.append(item);
-  }
-
-  elements.panelTags.replaceChildren();
-  for (const tag of district.tags) {
-    const chip = document.createElement('span');
-    chip.textContent = tag;
-    elements.panelTags.append(chip);
-  }
-
-  elements.panelLink.hidden = !district.href;
-  if (district.href) elements.panelLink.href = district.href;
-}
-
-function openProject(district) {
-  renderProject(district);
-  visited.add(district.id);
-  elements.panel.hidden = false;
-  elements.prompt.hidden = true;
-  elements.districtCount.textContent =
-    String(visited.size).padStart(2, '0') + ' / ' + String(districts.length).padStart(2, '0');
-  document
-    .querySelectorAll('[data-district-id]')
-    .forEach((node) => node.classList.toggle('is-active', node.dataset.districtId === district.id));
-  elements.panelClose.focus();
-  beep(760, 0.08);
-}
-
-function closeProject() {
-  elements.panel.hidden = true;
-  activeDistrict = null;
-  beep(410, 0.05);
-}
-
-function renderFallbackCards() {
-  elements.fallbackList.replaceChildren();
-  for (const district of districts) {
-    const card = document.createElement('article');
-    card.className = 'fallback-card';
-    card.style.setProperty('--node-color', district.color);
-
-    const title = document.createElement('h2');
-    title.textContent = localize(district.title, language);
-    const description = document.createElement('p');
-    description.textContent = localize(district.description, language);
-    card.append(title, description);
-
-    if (district.href) {
-      const link = document.createElement('a');
-      link.href = district.href;
-      link.target = '_blank';
-      link.rel = 'noreferrer';
-      link.textContent = copy[language].openGithub + ' ↗';
-      card.append(link);
-    }
-    elements.fallbackList.append(card);
-  }
 }
 
 function showFallback(error) {
@@ -240,99 +222,119 @@ function showFallback(error) {
   updateLanguage();
 }
 
-function setRendererQuality() {
-  if (!renderer) return;
-  const ratios = { low: 1, medium: 1.35, high: 1.8 };
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, ratios[quality]));
+function updateQuality() {
+  rendering?.setQuality(quality);
   world?.setQuality(quality);
   elements.quality.textContent = 'Q: ' + quality.toUpperCase();
 }
 
 function findNearbyDistrict() {
   if (!vehicle || activeDistrict) return null;
-  let nearest = null;
-  let nearestDistance = Infinity;
-
-  for (const district of districts) {
-    const dx = vehicle.position.x - district.position[0];
-    const dz = vehicle.position.z - district.position[1];
-    const distance = Math.hypot(dx, dz);
-    if (distance < district.radius + 5 && distance < nearestDistance) {
-      nearest = district;
-      nearestDistance = distance;
+  let closest = null;
+  let closestDistance = Infinity;
+  for (const district of physicalDistricts) {
+    const distance = Math.hypot(
+      vehicle.position.x - district.position[0],
+      vehicle.position.z - district.position[1],
+    );
+    if (distance < district.radius && distance < closestDistance) {
+      closest = district;
+      closestDistance = distance;
     }
   }
-  return nearest;
+  return closest;
+}
+
+function updateTelemetry() {
+  if (!vehicle) return;
+  elements.speed.textContent = String(Math.round(Math.abs(vehicle.speed) * 3.6)).padStart(3, '0');
+  const z = vehicle.position.z;
+  elements.zone.textContent = z > 25 ? 'GATE APPROACH' : z > 8 ? 'TRANSIT HUB' : z > -10 ? 'RAMP CORRIDOR' : 'SINGLE-CELL LAB';
 }
 
 function onResize() {
-  if (!renderer || !camera) return;
+  if (!camera || !rendering) return;
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight, false);
-  setRendererQuality();
+  rendering.resize();
 }
 
 async function initialize3D() {
-  elements.loadBar.style.width = '22%';
-  elements.loadStatus.textContent = language === 'zh' ? '正在初始化 WebGL...' : 'INITIALIZING WEBGL...';
+  elements.loadBar.style.width = '12%';
+  elements.loadStatus.textContent = language === 'zh' ? '正在初始化高动态范围渲染...' : 'INITIALIZING HDR PIPELINE...';
 
-  renderer = new THREE.WebGLRenderer({
-    canvas: elements.canvas,
-    antialias: quality !== 'low',
-    powerPreference: 'high-performance',
-  });
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.08;
-  renderer.setSize(window.innerWidth, window.innerHeight, false);
-
-  camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.1, 240);
   const scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 180);
+  rendering = createRendering(elements.canvas, scene, camera, quality);
 
-  elements.loadBar.style.width = '55%';
-  elements.loadStatus.textContent = language === 'zh' ? '正在生成基因数据城...' : 'GENERATING GENOME CITY...';
-  world = createWorld(scene, quality);
+  elements.loadBar.style.width = '31%';
+  elements.loadStatus.textContent = language === 'zh' ? '正在加载 Rapier 物理...' : 'LOADING RAPIER PHYSICS...';
+  physics = await createPhysics();
+
+  elements.loadBar.style.width = '58%';
+  elements.loadStatus.textContent = language === 'zh' ? '正在构建雨夜单细胞实验区...' : 'BUILDING THE RAIN LAB...';
+  world = createWorld(scene, physics, rendering.renderer, quality);
 
   elements.loadBar.style.width = '82%';
-  elements.loadStatus.textContent = language === 'zh' ? '正在部署 DNA ROVER...' : 'DEPLOYING DNA ROVER...';
+  elements.loadStatus.textContent = language === 'zh' ? '正在校准 DNA ROVER 悬挂...' : 'CALIBRATING ROVER SUSPENSION...';
   vehicle = createVehicleController({
     scene,
     camera,
     canvas: elements.canvas,
-    obstacles: world.obstacles,
-    bounds: worldBounds,
+    physics,
+    onImpact: (strength) => audio.impact(strength),
   });
 
   buildRadar();
-  setRendererQuality();
+  updateQuality();
   window.addEventListener('resize', onResize);
 
   const clock = new THREE.Clock();
+  let accumulator = 0;
+  let renderAccumulator = 0;
+
   function frame() {
-    const delta = clock.getDelta();
+    const delta = Math.min(clock.getDelta(), 0.1);
     const elapsed = clock.elapsedTime;
+    accumulator = Math.min(accumulator + delta, 0.18);
 
-    if (!activeDistrict) vehicle.update(delta);
-    world.update(elapsed);
-    updateRadar();
+    while (accumulator >= physics.fixedStep) {
+      vehicle.prePhysics(physics.fixedStep, !started || Boolean(activeDistrict));
+      physics.step();
+      vehicle.postPhysics(physics.fixedStep);
+      accumulator -= physics.fixedStep;
+    }
 
-    const nextNearby = findNearbyDistrict();
-    if (nextNearby !== nearbyDistrict) {
-      nearbyDistrict = nextNearby;
-      elements.prompt.hidden = !nearbyDistrict || !started;
-      if (nearbyDistrict) {
-        elements.prompt.style.setProperty('--active-color', nearbyDistrict.color);
+    world.update(elapsed, delta, vehicle.position);
+    if (started && !activeDistrict) {
+      const found = world.collectNear(vehicle.position);
+      if (found.length) {
+        fragmentCount += found.length;
+        elements.fragment.textContent =
+          String(fragmentCount).padStart(2, '0') + ' / ' + String(world.fragmentTotal).padStart(2, '0');
+        setToast(language === 'zh' ? '数据碎片已同步 +' + found.length : 'DATA FRAGMENT SYNCED +' + found.length);
+        audio.ui();
       }
     }
 
-    renderer.render(scene, camera);
+    nearbyDistrict = findNearbyDistrict();
+    elements.prompt.hidden = !started || !nearbyDistrict || Boolean(activeDistrict);
+    if (nearbyDistrict) elements.prompt.style.setProperty('--active-color', nearbyDistrict.color);
+
+    updateRadar();
+    updateTelemetry();
+    audio.update(vehicle.speed);
+    renderAccumulator += delta;
+    if (quality !== 'low' || renderAccumulator >= 1 / 30) {
+      rendering.render(renderAccumulator);
+      renderAccumulator = 0;
+    }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
 
   elements.loadBar.style.width = '100%';
-  elements.loadStatus.textContent = language === 'zh' ? '城市节点在线。' : 'CITY NODES ONLINE.';
+  elements.loadStatus.textContent = language === 'zh' ? '雨夜实验区在线。' : 'RAIN LAB ONLINE.';
   elements.enter.disabled = false;
   document.body.dataset.ready = 'true';
 }
@@ -341,34 +343,28 @@ elements.enter.addEventListener('click', () => {
   started = true;
   elements.boot.classList.add('is-hidden');
   elements.interface.hidden = false;
-  if (nearbyDistrict) elements.prompt.hidden = false;
   document.body.dataset.started = 'true';
-  beep(680, 0.12);
+  setToast(copy[language].terminalHint);
 });
 
+elements.projects.addEventListener('click', () => openProject(activeDistrict || districts[0]));
 elements.language.addEventListener('click', () => {
   language = language === 'zh' ? 'en' : 'zh';
   window.localStorage.setItem('genome-city-language', language);
   updateLanguage();
-  beep(580, 0.05);
+  audio.ui();
 });
-
 elements.quality.addEventListener('click', () => {
   quality = nextQuality(quality);
-  window.localStorage.setItem('genome-city-quality', quality);
-  setRendererQuality();
-  beep(500, 0.05);
+  window.localStorage.setItem('cell-drive-quality', quality);
+  updateQuality();
+  audio.ui();
 });
-
 elements.sound.addEventListener('click', () => {
-  soundEnabled = !soundEnabled;
+  audio.setEnabled(!audio.enabled);
   updateLanguage();
-  beep(720, 0.08);
 });
-
-elements.prompt.addEventListener('click', () => {
-  if (nearbyDistrict) openProject(nearbyDistrict);
-});
+elements.prompt.addEventListener('click', () => nearbyDistrict && openProject(nearbyDistrict));
 elements.panelClose.addEventListener('click', closeProject);
 
 window.addEventListener('keydown', (event) => {
@@ -381,8 +377,5 @@ window.addEventListener('keydown', (event) => {
 updateLanguage();
 elements.quality.textContent = 'Q: ' + quality.toUpperCase();
 
-if (!supportsWebGL() || reducedMotion) {
-  showFallback();
-} else {
-  initialize3D().catch(showFallback);
-}
+if (!supportsWebGL() || reducedMotion) showFallback();
+else initialize3D().catch(showFallback);

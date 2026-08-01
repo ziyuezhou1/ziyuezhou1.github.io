@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { districts } from './content.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { physicalDistricts } from './content.js';
 
 function seededRandom(seed) {
   let value = seed % 2147483647;
@@ -9,377 +10,561 @@ function seededRandom(seed) {
   };
 }
 
-function neonMaterial(color, intensity = 1.7) {
+function surface(color, roughness = 0.45, metalness = 0.55) {
+  return new THREE.MeshStandardMaterial({ color, roughness, metalness });
+}
+
+function glow(color, intensity = 3) {
   return new THREE.MeshStandardMaterial({
-    color: new THREE.Color(color).multiplyScalar(0.22),
-    emissive: new THREE.Color(color),
+    color: new THREE.Color(color).multiplyScalar(0.16),
+    emissive: color,
     emissiveIntensity: intensity,
-    metalness: 0.68,
-    roughness: 0.25,
+    roughness: 0.22,
+    metalness: 0.48,
   });
 }
 
-function createLabel(text, color) {
+function enableShadows(object) {
+  object.traverse((child) => {
+    if (!child.isMesh) return;
+    child.castShadow = true;
+    child.receiveShadow = true;
+  });
+  return object;
+}
+
+function labelSprite(text, color, width = 768) {
   const canvas = document.createElement('canvas');
-  canvas.width = 640;
-  canvas.height = 128;
+  canvas.width = width;
+  canvas.height = 144;
   const context = canvas.getContext('2d');
-  context.fillStyle = 'rgba(3, 6, 12, 0.88)';
+  context.fillStyle = 'rgba(2, 8, 12, 0.88)';
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.strokeStyle = color;
-  context.lineWidth = 8;
+  context.lineWidth = 7;
   context.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
-  context.fillStyle = '#f4fbff';
+  context.fillStyle = '#eefaff';
   context.font = '700 42px Orbitron, sans-serif';
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.fillText(text, canvas.width / 2, canvas.height / 2);
-
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  const sprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({
-      map: texture,
-      transparent: true,
-      depthWrite: false,
-    }),
-  );
-  sprite.scale.set(8.5, 1.7, 1);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    depthWrite: false,
+  }));
+  sprite.scale.set(9.6, 1.8, 1);
   return sprite;
 }
 
-function addRoad(scene, x, z, width, depth) {
-  const road = new THREE.Mesh(
-    new THREE.BoxGeometry(width, 0.08, depth),
-    new THREE.MeshStandardMaterial({
-      color: 0x080c13,
-      metalness: 0.4,
-      roughness: 0.76,
+function addBox(group, size, position, material, rotation = null) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
+  mesh.position.set(...position);
+  if (rotation) mesh.rotation.set(...rotation);
+  group.add(mesh);
+  return mesh;
+}
+
+function addPipe(group, from, to, radius, material) {
+  const start = new THREE.Vector3(...from);
+  const end = new THREE.Vector3(...to);
+  const direction = end.clone().sub(start);
+  const mesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius, radius, direction.length(), 12),
+    material,
+  );
+  mesh.position.copy(start).add(end).multiplyScalar(0.5);
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+  group.add(mesh);
+  return mesh;
+}
+
+function quaternionFromEuler(x = 0, y = 0, z = 0) {
+  const quaternion = new THREE.Quaternion();
+  quaternion.setFromEuler(new THREE.Euler(x, y, z));
+  return {
+    x: quaternion.x,
+    y: quaternion.y,
+    z: quaternion.z,
+    w: quaternion.w,
+  };
+}
+
+function createAsphaltTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const context = canvas.getContext('2d');
+  context.fillStyle = '#151b1f';
+  context.fillRect(0, 0, 256, 256);
+  const random = seededRandom(90210);
+  for (let index = 0; index < 2600; index += 1) {
+    const shade = 20 + Math.floor(random() * 35);
+    context.fillStyle = 'rgba(' + shade + ',' + (shade + 5) + ',' + (shade + 8) + ',0.55)';
+    const size = 0.4 + random() * 1.8;
+    context.fillRect(random() * 256, random() * 256, size, size);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(18, 18);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function createRain(random) {
+  const count = 900;
+  const positions = new Float32Array(count * 6);
+  const speeds = new Float32Array(count);
+  for (let index = 0; index < count; index += 1) {
+    const x = (random() - 0.5) * 70;
+    const y = random() * 32;
+    const z = (random() - 0.5) * 70;
+    const offset = index * 6;
+    positions[offset] = x;
+    positions[offset + 1] = y;
+    positions[offset + 2] = z;
+    positions[offset + 3] = x + 0.08;
+    positions[offset + 4] = y - 0.75 - random() * 0.9;
+    positions[offset + 5] = z + 0.04;
+    speeds[index] = 20 + random() * 22;
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const lines = new THREE.LineSegments(
+    geometry,
+    new THREE.LineBasicMaterial({
+      color: 0x9dd8e7,
+      transparent: true,
+      opacity: 0.23,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
     }),
   );
-  road.position.set(x, 0.02, z);
-  scene.add(road);
+  lines.frustumCulled = false;
+  lines.userData.speeds = speeds;
+  return lines;
+}
 
-  const isVertical = depth > width;
-  const lineGeometry = new THREE.BoxGeometry(
-    isVertical ? 0.08 : width * 0.92,
-    0.035,
-    isVertical ? depth * 0.92 : 0.08,
+function addTransitHub(scene, physics, animated) {
+  const group = new THREE.Group();
+  group.position.set(0, 0, 20);
+  const steel = surface(0x121b20, 0.32, 0.82);
+  const concrete = surface(0x20262a, 0.72, 0.18);
+  const cyan = glow('#46e7e1', 3.5);
+  const yellow = glow('#f4e65b', 2.8);
+
+  const platform = addBox(group, [13, 0.7, 9], [0, 0.35, 0], concrete);
+  platform.receiveShadow = true;
+  physics.addFixedBox({ position: [0, 0.35, 20], size: [13, 0.7, 9] });
+
+  for (const x of [-5.25, 5.25]) {
+    addBox(group, [0.8, 7.8, 0.8], [x, 4.25, 0], steel);
+    addBox(group, [1.1, 0.16, 7.2], [x, 6.8, 0], cyan);
+    physics.addFixedBox({ position: [x, 4.25, 20], size: [0.8, 7.8, 0.8] });
+  }
+  addBox(group, [11.2, 0.5, 1.2], [0, 7.4, -2.8], steel);
+  const sign = labelSprite('TRANSIT // PROJECT ARCHIVE', '#f4e65b');
+  sign.position.set(0, 6.25, -2.7);
+  group.add(sign);
+
+  const table = addBox(group, [3.8, 0.85, 2.4], [0, 1.15, 0.4], steel);
+  table.rotation.y = Math.PI / 4;
+  const holo = new THREE.Mesh(
+    new THREE.OctahedronGeometry(1.05, 1),
+    new THREE.MeshPhysicalMaterial({
+      color: 0x46e7e1,
+      emissive: 0x46e7e1,
+      emissiveIntensity: 2.2,
+      transparent: true,
+      opacity: 0.42,
+      roughness: 0.05,
+      transmission: 0.38,
+      depthWrite: false,
+    }),
   );
-  const lineMaterial = neonMaterial(0x00f0ff, 2.6);
-  for (const offset of [-0.42, 0.42]) {
-    const line = new THREE.Mesh(lineGeometry, lineMaterial);
-    line.position.set(
-      x + (isVertical ? width * offset : 0),
-      0.09,
-      z + (isVertical ? 0 : depth * offset),
-    );
-    scene.add(line);
+  holo.position.set(0, 3.3, 0.4);
+  group.add(holo);
+  animated.push({ object: holo, type: 'spin', speed: 0.55, baseY: 3.3 });
+
+  for (let index = 0; index < 3; index += 1) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.5 + index * 0.42, 0.035, 8, 48), index === 1 ? yellow : cyan);
+    ring.position.set(0, 2.45 + index * 0.52, 0.4);
+    ring.rotation.x = Math.PI / 2;
+    group.add(ring);
+    animated.push({ object: ring, type: 'ring', speed: 0.35 + index * 0.15 });
   }
+
+  enableShadows(group);
+  scene.add(group);
+  return group;
 }
 
-function addDnaHelix(group, colorA, colorB) {
-  const beadGeometry = new THREE.SphereGeometry(0.18, 10, 8);
-  const rungGeometry = new THREE.CylinderGeometry(0.035, 0.035, 1.75, 6);
-  const materialA = neonMaterial(colorA, 2.2);
-  const materialB = neonMaterial(colorB, 2.2);
-  const rungMaterial = new THREE.MeshBasicMaterial({ color: 0x64758a });
+function addSingleCellLab(scene, physics, animated, highDetail) {
+  const group = new THREE.Group();
+  group.position.set(0, 0, -29);
+  const shell = surface(0x121a1f, 0.3, 0.72);
+  const frame = surface(0x283239, 0.42, 0.78);
+  const cyan = glow('#46e7e1', 3.8);
+  const magenta = glow('#ff4778', 3.2);
+  const glass = new THREE.MeshPhysicalMaterial({
+    color: 0x6cdfe0,
+    transparent: true,
+    opacity: 0.25,
+    roughness: 0.08,
+    metalness: 0.18,
+    transmission: 0.48,
+    thickness: 0.8,
+  });
 
-  for (let index = 0; index < 20; index += 1) {
-    const y = index * 0.38;
-    const angle = index * 0.62;
-    const ax = Math.sin(angle) * 0.92;
-    const az = Math.cos(angle) * 0.92;
-    const a = new THREE.Mesh(beadGeometry, materialA);
-    const b = new THREE.Mesh(beadGeometry, materialB);
-    a.position.set(ax, y, az);
-    b.position.set(-ax, y, -az);
-    group.add(a, b);
+  addBox(group, [21, 0.8, 20], [0, 0.4, 0], surface(0x171c20, 0.58, 0.45));
+  physics.addFixedBox({ position: [0, 0.4, -29], size: [21, 0.8, 20] });
 
-    if (index % 2 === 0) {
-      const rung = new THREE.Mesh(rungGeometry, rungMaterial);
-      rung.position.set(0, y, 0);
-      rung.rotation.z = Math.PI / 2;
-      rung.rotation.y = -angle;
-      group.add(rung);
+  for (const x of [-9.4, 9.4]) {
+    addBox(group, [1.2, 10, 18], [x, 5.4, -0.6], shell);
+    physics.addFixedBox({ position: [x, 5.4, -29.6], size: [1.2, 10, 18] });
+    for (let z = -7; z <= 6; z += 3.2) {
+      addBox(group, [0.15, 6.8, 0.18], [x * 0.93, 5.2, z], cyan);
     }
   }
-}
 
-function addDistrictDecoration(group, district, animated, highDetailItems) {
-  if (district.id === 'origin') {
-    const helix = new THREE.Group();
-    addDnaHelix(helix, '#00f0ff', '#ff2f7d');
-    helix.position.set(0, 1.5, 0);
-    group.add(helix);
-    animated.push({ object: helix, type: 'rotate', speed: 0.22 });
-    return;
-  }
+  addBox(group, [20, 1, 1.3], [0, 9.8, -8.2], frame);
+  addBox(group, [20, 0.5, 1.1], [0, 5.6, 7.9], frame);
+  const sign = labelSprite('LAB 01 // SINGLE-CELL ATLAS', '#46e7e1');
+  sign.position.set(0, 8.15, 8.6);
+  group.add(sign);
 
-  if (district.id === 'scrna') {
-    const random = seededRandom(31);
-    const count = 170;
-    const positions = new Float32Array(count * 3);
-    for (let index = 0; index < count; index += 1) {
-      const cluster = index % 4;
-      positions[index * 3] = (cluster - 1.5) * 1.15 + (random() - 0.5) * 1.8;
-      positions[index * 3 + 1] = 4.5 + random() * 5;
-      positions[index * 3 + 2] = (random() - 0.5) * 4;
-    }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    const points = new THREE.Points(
-      geometry,
-      new THREE.PointsMaterial({
-        color: district.color,
-        size: 0.12,
+  for (const x of [-5.8, 0, 5.8]) {
+    const pod = new THREE.Group();
+    const tank = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 5.8, 24, 1, true), glass);
+    tank.position.y = 4.2;
+    pod.add(tank);
+    const capTop = new THREE.Mesh(new THREE.CylinderGeometry(2.15, 2.15, 0.42, 24), frame);
+    capTop.position.y = 7.1;
+    const capBottom = capTop.clone();
+    capBottom.position.y = 1.3;
+    pod.add(capTop, capBottom);
+
+    const cell = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.1, 2),
+      new THREE.MeshPhysicalMaterial({
+        color: x === 0 ? 0xff4778 : 0x46e7e1,
+        emissive: x === 0 ? 0xff4778 : 0x46e7e1,
+        emissiveIntensity: 1.2,
+        roughness: 0.18,
         transparent: true,
-        opacity: 0.85,
+        opacity: 0.72,
       }),
     );
-    group.add(points);
-    highDetailItems.push(points);
-    animated.push({ object: points, type: 'rotate', speed: 0.12 });
-    return;
+    cell.position.y = 4.3;
+    pod.add(cell);
+    animated.push({ object: cell, type: 'cell', speed: 0.42 + Math.abs(x) * 0.025, baseY: 4.3 });
+    pod.position.x = x;
+    group.add(pod);
   }
 
-  if (district.id === 'bulk') {
-    for (let index = -2; index <= 2; index += 1) {
-      const tube = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.34, 0.34, 4.5 + Math.abs(index) * 0.55, 10),
-        neonMaterial(index % 2 ? '#fcee0a' : district.color, 1.5),
-      );
-      tube.position.set(index * 0.82, 4.4, 0);
-      group.add(tube);
-    }
-    return;
+  addPipe(group, [-8.7, 8.7, -7.5], [8.7, 8.7, -7.5], 0.22, magenta);
+  addPipe(group, [-8.7, 8.1, -6.8], [8.7, 8.1, -6.8], 0.16, cyan);
+  for (const x of [-5.8, 0, 5.8]) {
+    addPipe(group, [x, 7.2, -6.8], [x, 7.2, 0], 0.12, cyan);
   }
 
-  if (district.id === 'medagent') {
-    for (let index = 0; index < 3; index += 1) {
-      const ring = new THREE.Mesh(
-        new THREE.TorusGeometry(2.1 + index * 0.62, 0.08, 8, 36),
-        neonMaterial(index === 1 ? '#00f0ff' : district.color, 2),
-      );
-      ring.position.y = 5.1;
-      ring.rotation.x = Math.PI / 2 + index * 0.44;
-      group.add(ring);
-      animated.push({ object: ring, type: 'ring', speed: 0.25 + index * 0.1 });
+  const helix = new THREE.Group();
+  const bead = new THREE.SphereGeometry(0.16, 10, 8);
+  for (let index = 0; index < 28; index += 1) {
+    const angle = index * 0.56;
+    const y = index * 0.3;
+    for (const side of [-1, 1]) {
+      const point = new THREE.Mesh(bead, side < 0 ? cyan : magenta);
+      point.position.set(Math.sin(angle) * 1.2 * side, y, Math.cos(angle) * 1.2 * side);
+      helix.add(point);
     }
-    return;
   }
+  helix.position.set(0, 1.2, -6);
+  highDetail.add(helix);
+  animated.push({ object: helix, type: 'spin', speed: 0.18, baseY: 1.2 });
 
-  if (district.id === 'llmpet') {
-    const head = new THREE.Mesh(
-      new THREE.SphereGeometry(1.5, 18, 12),
-      neonMaterial(district.color, 1.2),
-    );
-    head.position.y = 5.2;
-    head.scale.y = 0.82;
-    group.add(head);
-    for (const x of [-0.5, 0.5]) {
-      const eye = new THREE.Mesh(
-        new THREE.SphereGeometry(0.17, 10, 8),
-        neonMaterial('#00f0ff', 3),
-      );
-      eye.position.set(x, 5.35, 1.28);
-      group.add(eye);
-    }
-    const antenna = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.04, 0.04, 1.25, 8),
-      neonMaterial('#ff2f7d', 2),
-    );
-    antenna.position.set(0, 6.65, 0);
-    group.add(antenna);
-  }
+  enableShadows(group);
+  scene.add(group);
+  return group;
 }
 
-export function createWorld(scene, initialQuality = 'medium') {
-  scene.background = new THREE.Color(0x03050a);
-  scene.fog = new THREE.FogExp2(0x03050a, 0.018);
+function addSkyline(scene, physics, random, mediumDetail) {
+  const material = surface(0x0a1015, 0.4, 0.72);
+  const cyan = glow('#257f86', 1.4);
+  const pink = glow('#8d2448', 1.5);
+  const positions = [
+    [-39, -31, 10, 24, 11], [39, -28, 12, 31, 12], [-37, 7, 11, 19, 13],
+    [38, 10, 13, 25, 10], [-31, 34, 15, 18, 11], [32, 37, 12, 22, 13],
+    [-43, 38, 8, 30, 8], [43, 42, 9, 20, 9], [-43, -2, 8, 15, 10],
+    [44, -1, 7, 17, 11], [-28, -43, 15, 22, 8], [29, -43, 13, 28, 9],
+  ];
 
-  const obstacles = [];
-  const landmarks = new Map();
+  for (let index = 0; index < positions.length; index += 1) {
+    const [x, z, width, height, depth] = positions[index];
+    const tower = new THREE.Group();
+    addBox(tower, [width, height, depth], [0, height / 2, 0], material);
+    for (let floor = 2; floor < height - 2; floor += 2.7) {
+      const band = addBox(tower, [width + 0.08, 0.06, depth + 0.08], [0, floor, 0], index % 2 ? pink : cyan);
+      band.material = index % 2 ? pink : cyan;
+    }
+    if (index % 3 === 0) {
+      addPipe(tower, [0, height, 0], [0, height + 4 + random() * 4, 0], 0.08, cyan);
+    }
+    tower.position.set(x, 0, z);
+    enableShadows(tower);
+    mediumDetail.add(tower);
+    physics.addFixedBox({ position: [x, height / 2, z], size: [width, height, depth] });
+  }
+  scene.add(mediumDetail);
+}
+
+function addStreetFurniture(scene, physics, mediumDetail) {
+  const pole = surface(0x202b31, 0.3, 0.88);
+  const lightMaterial = glow('#46e7e1', 4);
+  for (const side of [-1, 1]) {
+    for (let z = 34; z >= -12; z -= 8) {
+      const group = new THREE.Group();
+      const x = side * 7.2;
+      addBox(group, [0.15, 4.8, 0.15], [x, 2.4, z], pole);
+      addBox(group, [1.35, 0.12, 0.12], [x - side * 0.55, 4.75, z], pole);
+      addBox(group, [0.75, 0.08, 0.22], [x - side * 1.0, 4.62, z], lightMaterial);
+      mediumDetail.add(group);
+      physics.addFixedBox({ position: [x, 2.2, z], size: [0.34, 4.4, 0.34] });
+    }
+  }
+  scene.add(mediumDetail);
+}
+
+export function createWorld(scene, physics, renderer, initialQuality = 'medium') {
+  const random = seededRandom(221022);
   const animated = [];
-  const lowDetail = new THREE.Group();
+  const mediumDetail = new THREE.Group();
   const highDetail = new THREE.Group();
-  const highDetailItems = [];
-  scene.add(lowDetail, highDetail);
+  const dynamicObjects = [];
+  const fragments = [];
+  const landmarks = new Map();
 
-  const hemisphere = new THREE.HemisphereLight(0x5079a8, 0x05070c, 1.3);
+  scene.background = new THREE.Color(0x030709);
+  scene.fog = new THREE.FogExp2(0x071014, 0.021);
+
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.03).texture;
+  pmrem.dispose();
+
+  const hemisphere = new THREE.HemisphereLight(0x5e8190, 0x020405, 0.72);
   scene.add(hemisphere);
-
-  const moon = new THREE.DirectionalLight(0x9ebcff, 2.4);
-  moon.position.set(24, 38, 18);
+  const moon = new THREE.DirectionalLight(0xa9d7e9, 3.1);
+  moon.position.set(-18, 32, 24);
+  moon.castShadow = true;
+  moon.shadow.mapSize.set(2048, 2048);
+  moon.shadow.camera.left = -48;
+  moon.shadow.camera.right = 48;
+  moon.shadow.camera.top = 48;
+  moon.shadow.camera.bottom = -48;
+  moon.shadow.camera.near = 1;
+  moon.shadow.camera.far = 110;
   scene.add(moon);
 
-  const cyanLight = new THREE.PointLight(0x00f0ff, 80, 42, 2);
-  cyanLight.position.set(-20, 9, 4);
-  scene.add(cyanLight);
-  const pinkLight = new THREE.PointLight(0xff2f7d, 70, 38, 2);
-  pinkLight.position.set(22, 8, -25);
-  scene.add(pinkLight);
+  const labLight = new THREE.PointLight(0x46e7e1, 180, 45, 2);
+  labLight.position.set(0, 8, -22);
+  scene.add(labLight);
+  const hubLight = new THREE.PointLight(0xf4e65b, 90, 26, 2);
+  hubLight.position.set(0, 7, 20);
+  scene.add(hubLight);
+  const magentaLight = new THREE.PointLight(0xff4778, 75, 28, 2);
+  magentaLight.position.set(8, 6, -4);
+  scene.add(magentaLight);
 
+  const asphalt = createAsphaltTexture();
   const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(120, 120),
-    new THREE.MeshStandardMaterial({
-      color: 0x05070c,
-      roughness: 0.92,
-      metalness: 0.12,
+    new THREE.PlaneGeometry(100, 100),
+    new THREE.MeshPhysicalMaterial({
+      map: asphalt,
+      color: 0x182025,
+      roughness: 0.24,
+      metalness: 0.48,
+      clearcoat: 1,
+      clearcoatRoughness: 0.1,
     }),
   );
   ground.rotation.x = -Math.PI / 2;
-  ground.position.y = -0.04;
+  ground.receiveShadow = true;
   scene.add(ground);
+  physics.addFixedBox({ position: [0, -0.3, 0], size: [100, 0.6, 100], friction: 1.35 });
 
-  const grid = new THREE.GridHelper(120, 60, 0x0b5b65, 0x111a25);
-  grid.position.y = 0.005;
-  scene.add(grid);
+  const road = new THREE.Mesh(
+    new THREE.PlaneGeometry(15, 88),
+    new THREE.MeshPhysicalMaterial({
+      color: 0x0b1013,
+      roughness: 0.2,
+      metalness: 0.6,
+      clearcoat: 1,
+      clearcoatRoughness: 0.08,
+    }),
+  );
+  road.rotation.x = -Math.PI / 2;
+  road.position.set(0, 0.015, -1);
+  road.receiveShadow = true;
+  scene.add(road);
 
-  addRoad(scene, 0, -5, 10, 110);
-  addRoad(scene, 0, 0, 110, 10);
-  addRoad(scene, 0, -31, 78, 9);
-  addRoad(scene, -22, -17, 8, 28);
-  addRoad(scene, 22, -17, 8, 28);
+  const laneMaterial = glow('#46e7e1', 2.2);
+  for (const x of [-6.7, 6.7]) addBox(scene, [0.08, 0.035, 88], [x, 0.055, -1], laneMaterial);
+  for (let z = 39; z > -42; z -= 5) addBox(scene, [0.08, 0.025, 2.3], [0, 0.05, z], laneMaterial);
 
-  const random = seededRandom(221022);
-  const skylineMaterial = new THREE.MeshStandardMaterial({
-    color: 0x080d16,
-    emissive: 0x06151e,
-    emissiveIntensity: 0.65,
-    metalness: 0.55,
-    roughness: 0.5,
-  });
-
-  for (let index = 0; index < 62; index += 1) {
-    const edge = index % 4;
-    const along = -51 + random() * 102;
-    const inset = 43 + random() * 9;
-    const x = edge < 2 ? (edge === 0 ? -inset : inset) : along;
-    const z = edge >= 2 ? (edge === 2 ? -inset : inset) : along;
-    const height = 3 + random() * 15;
-    const building = new THREE.Mesh(
-      new THREE.BoxGeometry(2.2 + random() * 4, height, 2.2 + random() * 4),
-      skylineMaterial,
-    );
-    building.position.set(x, height / 2, z);
-    building.rotation.y = random() * 0.3;
-    lowDetail.add(building);
-
-    if (index % 3 === 0) {
-      const beacon = new THREE.Mesh(
-        new THREE.BoxGeometry(0.06, height * 0.75, 0.08),
-        neonMaterial(index % 2 ? '#00f0ff' : '#ff2f7d', 1.5),
-      );
-      beacon.position.set(x, height / 2, z + 1.5);
-      lowDetail.add(beacon);
-    }
-  }
-
-  for (const district of districts) {
-    const [x, z] = district.position;
-    const group = new THREE.Group();
-    group.position.set(x, 0, z);
-    group.userData.districtId = district.id;
-
-    const base = new THREE.Mesh(
-      new THREE.CylinderGeometry(district.id === 'origin' ? 5.2 : 4, district.id === 'origin' ? 6 : 4.8, 0.9, 8),
-      new THREE.MeshStandardMaterial({
-        color: 0x080b12,
-        emissive: new THREE.Color(district.color).multiplyScalar(0.08),
-        emissiveIntensity: 1,
+  for (let index = 0; index < 16; index += 1) {
+    const puddle = new THREE.Mesh(
+      new THREE.CircleGeometry(0.8 + random() * 2.2, 24),
+      new THREE.MeshPhysicalMaterial({
+        color: index % 3 === 0 ? 0x183e43 : 0x111b20,
+        roughness: 0.04,
         metalness: 0.82,
-        roughness: 0.34,
+        transparent: true,
+        opacity: 0.52,
       }),
     );
-    base.position.y = 0.45;
-    group.add(base);
+    puddle.rotation.x = -Math.PI / 2;
+    puddle.scale.y = 0.35 + random() * 0.5;
+    puddle.position.set((random() - 0.5) * 70, 0.025, (random() - 0.5) * 86);
+    mediumDetail.add(puddle);
+  }
 
-    if (district.id !== 'origin') {
-      const towerHeight = 5.7;
-      const tower = new THREE.Mesh(
-        new THREE.BoxGeometry(4.8, towerHeight, 4.8),
-        new THREE.MeshStandardMaterial({
-          color: 0x070b12,
-          emissive: new THREE.Color(district.color).multiplyScalar(0.08),
-          emissiveIntensity: 1,
-          metalness: 0.76,
-          roughness: 0.3,
-        }),
-      );
-      tower.position.y = towerHeight / 2 + 0.8;
-      group.add(tower);
+  addSkyline(scene, physics, random, mediumDetail);
+  addStreetFurniture(scene, physics, mediumDetail);
+  landmarks.set('origin', addTransitHub(scene, physics, animated));
+  landmarks.set('scrna', addSingleCellLab(scene, physics, animated, highDetail));
 
-      for (const offset of [-1.72, 1.72]) {
-        const fin = new THREE.Mesh(
-          new THREE.BoxGeometry(0.08, 4.8, 0.1),
-          neonMaterial(district.color, 2.2),
-        );
-        fin.position.set(offset, 3.6, 2.43);
-        group.add(fin);
-      }
-    }
+  const rampRotation = quaternionFromEuler(-0.23, 0, 0);
+  const ramp = addBox(scene, [7.4, 0.5, 9.5], [10.5, 1.25, 1], surface(0x253038, 0.34, 0.78), [-0.23, 0, 0]);
+  ramp.castShadow = ramp.receiveShadow = true;
+  addBox(scene, [7.1, 0.06, 8.7], [10.5, 1.58, 1], glow('#ff4778', 2.4), [-0.23, 0, 0]);
+  physics.addFixedBox({
+    position: [10.5, 1.25, 1],
+    size: [7.4, 0.5, 9.5],
+    rotation: rampRotation,
+    friction: 1.15,
+  });
 
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(district.id === 'origin' ? 5.5 : 4.3, 0.08, 8, 48),
-      neonMaterial(district.color, 2.6),
-    );
-    ring.rotation.x = Math.PI / 2;
-    ring.position.y = 0.98;
-    group.add(ring);
-    animated.push({ object: ring, type: 'pulse', speed: 1.3 });
-
-    const label = createLabel(district.code, district.color);
-    label.position.set(0, district.id === 'origin' ? 10.3 : 8.2, 0);
-    group.add(label);
-    animated.push({ object: label, type: 'float', baseY: label.position.y, speed: 0.9 });
-
-    addDistrictDecoration(group, district, animated, highDetailItems);
+  const crateMaterial = surface(0x30383a, 0.58, 0.62);
+  const crateGlow = glow('#f4e65b', 2.1);
+  const cratePositions = [[-4.2, 1, 5], [-5.7, 1, 3.5], [4.8, 1, -7], [6.3, 1, -8.4], [-3, 1, -10]];
+  for (const position of cratePositions) {
+    const group = new THREE.Group();
+    addBox(group, [1.7, 1.7, 1.7], [0, 0, 0], crateMaterial);
+    addBox(group, [1.75, 0.08, 1.75], [0, 0.48, 0], crateGlow);
+    group.position.set(...position);
     scene.add(group);
-    landmarks.set(district.id, group);
-    obstacles.push({ x, z, radius: district.id === 'origin' ? 5.7 : 4.7 });
+    const dynamic = physics.addDynamicBox({ position, size: [1.7, 1.7, 1.7], density: 5 });
+    dynamicObjects.push({ mesh: group, body: dynamic.body });
   }
 
-  const starGeometry = new THREE.BufferGeometry();
-  const starCount = 700;
-  const starPositions = new Float32Array(starCount * 3);
-  for (let index = 0; index < starCount; index += 1) {
-    starPositions[index * 3] = (random() - 0.5) * 180;
-    starPositions[index * 3 + 1] = 18 + random() * 75;
-    starPositions[index * 3 + 2] = (random() - 0.5) * 180;
+  const fragmentGeometry = new THREE.OctahedronGeometry(0.38, 0);
+  const fragmentMaterial = glow('#f4e65b', 4.8);
+  const fragmentPositions = [[-3.2, 1.5, 31], [3.4, 1.5, 25], [-4.4, 1.5, 14], [3.2, 1.5, 7], [-2.8, 1.5, -3], [4.2, 1.5, -11], [-3.5, 1.5, -17], [0, 1.5, -22]];
+  fragmentPositions.forEach((position, index) => {
+    const mesh = new THREE.Mesh(fragmentGeometry, fragmentMaterial);
+    mesh.position.set(...position);
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.035, 8, 32), fragmentMaterial);
+    halo.rotation.x = Math.PI / 2;
+    mesh.add(halo);
+    mesh.userData.baseY = position[1];
+    scene.add(mesh);
+    fragments.push({ id: 'fragment-' + index, mesh, collected: false });
+  });
+
+  const rain = createRain(random);
+  scene.add(rain);
+
+  const beamMaterial = new THREE.MeshBasicMaterial({
+    color: 0x46e7e1,
+    transparent: true,
+    opacity: 0.035,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  for (const x of [-6, 6]) {
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 4.5, 18, 24, 1, true), beamMaterial);
+    beam.position.set(x, 9, -26);
+    highDetail.add(beam);
   }
-  starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-  const stars = new THREE.Points(
-    starGeometry,
-    new THREE.PointsMaterial({ color: 0x77dce4, size: 0.12, transparent: true, opacity: 0.7 }),
-  );
-  highDetail.add(stars);
+  scene.add(highDetail);
+
+  for (const x of [-50.5, 50.5]) physics.addFixedBox({ position: [x, 4, 0], size: [1, 8, 102] });
+  for (const z of [-50.5, 50.5]) physics.addFixedBox({ position: [0, 4, z], size: [102, 8, 1] });
 
   function setQuality(level) {
-    lowDetail.visible = level !== 'low';
+    mediumDetail.visible = level !== 'low';
     highDetail.visible = level === 'high';
-    highDetailItems.forEach((item) => {
-      item.visible = level === 'high';
-    });
+    rain.geometry.setDrawRange(0, { low: 440, medium: 1040, high: 1800 }[level]);
+    moon.castShadow = level !== 'low';
   }
 
-  function update(elapsed) {
+  function update(elapsed, delta, focus) {
     for (const item of animated) {
-      if (item.type === 'rotate') item.object.rotation.y = elapsed * item.speed;
-      if (item.type === 'ring') {
-        item.object.rotation.y += 0.003 * item.speed;
-        item.object.rotation.z += 0.002 * item.speed;
-      }
-      if (item.type === 'pulse') {
-        const scale = 1 + Math.sin(elapsed * item.speed) * 0.018;
-        item.object.scale.setScalar(scale);
-      }
-      if (item.type === 'float') {
-        item.object.position.y = item.baseY + Math.sin(elapsed * item.speed) * 0.18;
+      if (item.type === 'spin') {
+        item.object.rotation.y += delta * item.speed;
+        item.object.position.y = item.baseY + Math.sin(elapsed * item.speed * 2) * 0.16;
+      } else if (item.type === 'ring') {
+        item.object.rotation.z += delta * item.speed;
+      } else if (item.type === 'cell') {
+        item.object.rotation.x += delta * item.speed;
+        item.object.rotation.y -= delta * item.speed * 0.7;
+        item.object.position.y = item.baseY + Math.sin(elapsed * item.speed * 3) * 0.24;
       }
     }
+
+    for (const fragment of fragments) {
+      if (fragment.collected) continue;
+      fragment.mesh.rotation.y += delta * 1.7;
+      fragment.mesh.rotation.x += delta * 0.55;
+      fragment.mesh.position.y = fragment.mesh.userData.baseY + Math.sin(elapsed * 2 + fragment.mesh.position.x) * 0.22;
+    }
+
+    const positions = rain.geometry.attributes.position.array;
+    const speeds = rain.userData.speeds;
+    for (let index = 0; index < speeds.length; index += 1) {
+      const offset = index * 6;
+      const drop = speeds[index] * delta;
+      positions[offset + 1] -= drop;
+      positions[offset + 4] -= drop;
+      if (positions[offset + 4] < 0) {
+        const resetY = 25 + random() * 8;
+        const length = 0.75 + random() * 0.9;
+        positions[offset + 1] = resetY;
+        positions[offset + 4] = resetY - length;
+      }
+    }
+    rain.geometry.attributes.position.needsUpdate = true;
+    if (focus) rain.position.set(focus.x, 0, focus.z);
+
+    for (const item of dynamicObjects) {
+      const position = item.body.translation();
+      const rotation = item.body.rotation();
+      item.mesh.position.set(position.x, position.y, position.z);
+      item.mesh.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
+    }
+  }
+
+  function collectNear(position) {
+    const collected = [];
+    for (const fragment of fragments) {
+      if (fragment.collected || fragment.mesh.position.distanceTo(position) > 2.1) continue;
+      fragment.collected = true;
+      fragment.mesh.visible = false;
+      collected.push(fragment.id);
+    }
+    return collected;
   }
 
   setQuality(initialQuality);
-  return { obstacles, landmarks, setQuality, update };
+  return {
+    landmarks,
+    physicalNodes: physicalDistricts,
+    fragments,
+    fragmentTotal: fragments.length,
+    setQuality,
+    update,
+    collectNear,
+  };
 }

@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#05070b" />
+    <meta name="theme-color" content="#030709" />
     <meta
       name="description"
-      content="周子悦的沉浸式生物信息学与 AI 工程作品集：驾驶 DNA Rover 探索赛博朋克基因数据城。"
+      content="周子悦的沉浸式生物信息学与 AI 工程作品集：驾驶 DNA Rover 穿越雨夜单细胞实验区。"
     />
-    <title>ZY // Genome City</title>
+    <title>ZY // Cell Drive</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -18,88 +18,98 @@
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
-    <canvas id="scene" aria-label="可驾驶探索的三维基因数据城"></canvas>
+    <canvas id="scene" aria-label="可驾驶探索的雨夜单细胞实验区"></canvas>
 
     <section id="boot-screen" class="boot-screen" aria-labelledby="boot-title">
-      <div class="boot-grid" aria-hidden="true"></div>
+      <div class="boot-atmosphere" aria-hidden="true"></div>
       <div class="boot-copy">
-        <p class="eyebrow">BIOINFORMATICS // AI ENGINEERING</p>
-        <h1 id="boot-title"><span>GENOME</span> CITY</h1>
+        <p class="eyebrow">AN INTERACTIVE BIOINFORMATICS PORTFOLIO</p>
+        <h1 id="boot-title"><span>CELL</span><i>//</i>DRIVE</h1>
         <p id="boot-subtitle" class="boot-subtitle">
-          驾驶 DNA Rover，探索单细胞、转录组与医疗 AI 项目。
+          驾驶 DNA Rover 穿过雨夜交通终端，进入单细胞数据实验区。
         </p>
         <div class="load-track" aria-hidden="true"><span id="load-bar"></span></div>
-        <p id="load-status" class="load-status">正在构建数据城市...</p>
+        <p id="load-status" class="load-status">正在启动物理与雨夜系统...</p>
         <button id="enter-button" class="primary-action" type="button" disabled>
-          <span>ENTER EXPERIENCE</span>
+          <span>IGNITE ROVER</span>
           <small>点击进入 / CLICK TO START</small>
         </button>
-        <p class="boot-note">WASD / 方向键驾驶 · 拖拽旋转镜头 · E 访问项目</p>
+        <p class="boot-note">WASD 驾驶 · SHIFT 推进 · SPACE 漂移 · Q 跃起 · E 连接终端</p>
       </div>
-      <div class="boot-index" aria-hidden="true">ZY-221022<br />CITY NODE 01<br />STATUS: ONLINE</div>
+      <div class="boot-coordinate" aria-hidden="true">
+        31°12' N / 121°28' E<br />RAIN LAB LINK 02<br />PHYSICS: STANDBY
+      </div>
     </section>
 
     <main id="interface" class="interface" hidden>
       <header class="topbar">
-        <a class="brand" href="/" aria-label="返回 Genome City 起点">
+        <a class="brand" href="/" aria-label="返回体验起点">
           <span class="brand-mark">ZY</span>
-          <span><strong>GENOME CITY</strong><small>BIO × COMPUTATION</small></span>
+          <span><strong>CELL//DRIVE</strong><small>BIO × COMPUTATION</small></span>
         </a>
-        <div class="system-state">
-          <span class="pulse-dot"></span>
-          <span id="status-text">SYSTEM ONLINE</span>
-        </div>
-        <nav class="actions" aria-label="显示与页面选项">
+        <div class="system-state"><span></span><b id="status-text">RAIN LINK // ONLINE</b></div>
+        <nav class="actions" aria-label="体验选项">
+          <button id="projects-button" type="button">PROJECTS</button>
           <button id="language-button" type="button" aria-label="切换语言">EN</button>
           <button id="quality-button" type="button" aria-label="切换画质">Q: AUTO</button>
           <button id="sound-button" type="button" aria-label="切换声音">SOUND: OFF</button>
-          <a id="resume-link" class="resume-link" href="/resume.html">A4 简历</a>
+          <a id="resume-link" href="/resume.html">A4 简历</a>
         </nav>
       </header>
 
-      <aside class="mission-panel" aria-labelledby="mission-title">
-        <p class="panel-kicker">ACTIVE MISSION</p>
-        <h2 id="mission-title">探索基因数据城</h2>
-        <p id="mission-copy">沿霓虹道路驾驶，靠近数据节点后按 E 查看项目。</p>
-        <div class="control-grid" aria-label="驾驶控制说明">
-          <span><kbd>WASD</kbd><small id="control-drive">驾驶</small></span>
-          <span><kbd>SHIFT</kbd><small id="control-boost">加速</small></span>
-          <span><kbd>SPACE</kbd><small id="control-brake">刹车</small></span>
-          <span><kbd>R</kbd><small id="control-reset">复位</small></span>
+      <section class="mission-chip" aria-labelledby="mission-title">
+        <span class="mission-index">01</span>
+        <div>
+          <p>ACTIVE ROUTE</p>
+          <h2 id="mission-title">前往单细胞实验区</h2>
+          <small id="mission-copy">穿过中央终端，收集数据碎片，从坡道进入雨夜实验区。</small>
         </div>
-      </aside>
+      </section>
 
-      <aside class="district-panel" aria-labelledby="district-title">
-        <div class="panel-heading">
-          <p id="district-title">CITY NODES</p>
-          <span id="district-count">00 / 05</span>
-        </div>
-        <div id="district-navigation" class="district-navigation"></div>
-      </aside>
+      <section class="telemetry" aria-label="车辆遥测">
+        <div><strong id="speed-value">000</strong><span id="speed-label">时速</span></div>
+        <div><strong id="fragment-value">00 / 08</strong><span id="fragment-label">数据碎片</span></div>
+        <p id="zone-value">GATE APPROACH</p>
+      </section>
 
-      <div class="radar" aria-label="城市雷达">
-        <div class="radar-ring"></div>
+      <div class="radar" aria-label="路线雷达">
+        <span class="radar-route"></span>
         <div id="radar-points"></div>
-        <span id="radar-rover" class="radar-rover"></span>
+        <span id="radar-rover"></span>
+      </div>
+
+      <div class="control-hint" aria-label="驾驶控制">
+        <span><kbd>WASD</kbd><b id="control-drive">驾驶</b></span>
+        <span><kbd>⇧</kbd><b id="control-boost">推进</b></span>
+        <span><kbd>SPACE</kbd><b id="control-brake">漂移 / 刹车</b></span>
+        <span><kbd>Q</kbd><b id="control-jump">跃起</b></span>
+        <span><kbd>R</kbd><b id="control-reset">复位</b></span>
       </div>
 
       <button id="proximity-prompt" class="proximity-prompt" type="button" hidden>
-        <kbd>E</kbd>
-        <span id="proximity-copy">访问数据节点</span>
+        <kbd>E</kbd><span id="proximity-copy">连接现场终端</span>
       </button>
 
       <section id="project-panel" class="project-panel" hidden aria-modal="true" role="dialog" aria-labelledby="project-title">
-        <button id="project-close" class="project-close" type="button" aria-label="关闭项目面板">×</button>
-        <p id="project-code" class="panel-kicker"></p>
-        <h2 id="project-title"></h2>
-        <p id="project-subtitle" class="project-subtitle"></p>
-        <p id="project-description" class="project-description"></p>
-        <ul id="project-highlights" class="project-highlights"></ul>
-        <div id="project-tags" class="project-tags"></div>
-        <a id="project-link" class="project-link" href="#" target="_blank" rel="noreferrer">
-          <span id="project-link-copy">查看 GitHub</span><span aria-hidden="true">↗</span>
-        </a>
+        <div class="terminal-header">
+          <span>PROJECT TRANSIT // SECURE LINK</span>
+          <button id="project-close" type="button" aria-label="关闭项目终端">×</button>
+        </div>
+        <nav id="project-tabs" class="project-tabs" aria-label="项目列表"></nav>
+        <div class="project-content">
+          <p id="project-code" class="panel-kicker"></p>
+          <h2 id="project-title"></h2>
+          <p id="project-subtitle" class="project-subtitle"></p>
+          <p id="project-description" class="project-description"></p>
+          <ul id="project-highlights" class="project-highlights"></ul>
+          <div id="project-tags" class="project-tags"></div>
+          <a id="project-link" class="project-link" href="#" target="_blank" rel="noreferrer">
+            <span id="project-link-copy">查看 GitHub</span><span aria-hidden="true">↗</span>
+          </a>
+        </div>
       </section>
+
+      <p id="toast" class="toast" role="status" aria-live="polite"></p>
 
       <div class="mobile-controls" aria-label="触控驾驶控制">
         <div class="mobile-pad">
@@ -109,15 +119,16 @@
           <button data-control="right" aria-label="右转">▶</button>
         </div>
         <div class="mobile-actions">
-          <button data-control="boost" aria-label="加速">BOOST</button>
-          <button data-control="brake" aria-label="刹车">BRAKE</button>
+          <button data-control="boost" aria-label="推进">BOOST</button>
+          <button data-control="brake" aria-label="刹车">DRIFT</button>
+          <button data-control="jump" aria-label="跃起">JUMP</button>
         </div>
       </div>
     </main>
 
     <section id="fallback" class="fallback" hidden aria-labelledby="fallback-title">
-      <p class="eyebrow">ACCESSIBLE DATA DIRECTORY</p>
-      <h1 id="fallback-title">GENOME CITY // PROJECT INDEX</h1>
+      <p class="eyebrow">ACCESSIBLE PROJECT TRANSIT</p>
+      <h1 id="fallback-title">CELL//DRIVE <span>PROJECT INDEX</span></h1>
       <p id="fallback-copy">当前设备未启用 WebGL 或偏好减少动态效果。你仍可访问全部项目。</p>
       <div id="fallback-list" class="fallback-list"></div>
       <a class="primary-action fallback-resume" href="/resume.html">打开 A4 简历</a>
@@ -126,7 +137,6 @@
     <noscript>
       <div class="noscript">此体验需要 JavaScript。你仍可访问 <a href="/resume.html">A4 简历</a>。</div>
     </noscript>
-
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

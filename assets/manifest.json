@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "bundledAssets": [
+    {
+      "id": "procedural-rain-lab",
+      "path": "procedural://src/world.js",
+      "kind": "runtime-geometry",
+      "author": "Ziyue Zhou project",
+      "license": "LicenseRef-Project-Original",
+      "source": "src/world.js",
+      "notes": "Transit hub, laboratory architecture, wet road, rain, props, data fragments, and skyline are generated at runtime."
+    },
+    {
+      "id": "procedural-dna-rover",
+      "path": "procedural://src/vehicle.js",
+      "kind": "runtime-geometry",
+      "author": "Ziyue Zhou project",
+      "license": "LicenseRef-Project-Original",
+      "source": "src/vehicle.js",
+      "notes": "Original modular rover mesh synchronized to the Rapier chassis and wheels."
+    },
+    {
+      "id": "procedural-soundscape",
+      "path": "procedural://src/audio.js",
+      "kind": "generated-audio",
+      "author": "Ziyue Zhou project",
+      "license": "LicenseRef-Project-Original",
+      "source": "src/audio.js",
+      "notes": "Engine, rain, collision, and UI waveforms are generated in-browser and played through Howler."
+    }
+  ],
+  "approvedCc0Sources": [
+    {
+      "name": "Kenney",
+      "url": "https://kenney.nl/",
+      "license": "CC0-1.0",
+      "status": "Approved source; no binary from this source is bundled in this vertical slice."
+    },
+    {
+      "name": "Poly Haven",
+      "url": "https://polyhaven.com/",
+      "license": "CC0-1.0",
+      "status": "Approved source; no binary from this source is bundled in this vertical slice."
+    }
+  ]
+}
