@@ -11,7 +11,46 @@ export function formatRaceTime(milliseconds) {
   const minutes = Math.floor(value / 60000);
   const seconds = Math.floor((value % 60000) / 1000);
   const millis = Math.floor(value % 1000);
-  return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0') + '.' + String(millis).padStart(3, '0');
+  return String(minutes).padStart(2, '0') + ':' +
+    String(seconds).padStart(2, '0') + '.' +
+    String(millis).padStart(3, '0');
+}
+
+function normalizeCheckpoint(checkpoint, checkpointRadius) {
+  if (Array.isArray(checkpoint)) {
+    return {
+      position: checkpoint,
+      normal: null,
+      width: checkpointRadius,
+    };
+  }
+  return {
+    position: checkpoint.position,
+    normal: checkpoint.normal || null,
+    width: checkpoint.width || checkpointRadius,
+  };
+}
+
+function reachesCheckpoint(previous, current, checkpoint, checkpointRadius) {
+  const target = normalizeCheckpoint(checkpoint, checkpointRadius);
+  const dx = current.x - target.position[0];
+  const dz = current.z - target.position[1];
+
+  if (!target.normal) {
+    return Math.hypot(dx, dz) <= target.width;
+  }
+  if (!previous) return false;
+
+  const normalLength = Math.hypot(target.normal[0], target.normal[1]) || 1;
+  const normalX = target.normal[0] / normalLength;
+  const normalZ = target.normal[1] / normalLength;
+  const previousSide =
+    (previous.x - target.position[0]) * normalX +
+    (previous.z - target.position[1]) * normalZ;
+  const currentSide = dx * normalX + dz * normalZ;
+  const lateral = Math.abs(dx * -normalZ + dz * normalX);
+
+  return previousSide < 0 && currentSide >= 0 && lateral <= target.width;
 }
 
 export function createRaceController({
@@ -27,6 +66,10 @@ export function createRaceController({
   let startedAt = 0;
   let finishedAt = 0;
   let checkpointIndex = 0;
+  let previousPosition = null;
+  let splitTimes = [];
+  let lastSplit = null;
+  let checkpointEvent = 0;
   let best = readBest();
 
   function key() {
@@ -44,6 +87,10 @@ export function createRaceController({
     startedAt = 0;
     finishedAt = 0;
     checkpointIndex = 0;
+    previousPosition = null;
+    splitTimes = [];
+    lastSplit = null;
+    checkpointEvent = 0;
   }
 
   function cancel() {
@@ -52,6 +99,10 @@ export function createRaceController({
     startedAt = 0;
     finishedAt = 0;
     checkpointIndex = 0;
+    previousPosition = null;
+    splitTimes = [];
+    lastSplit = null;
+    checkpointEvent = 0;
   }
 
   function setVehicle(id) {
@@ -64,11 +115,16 @@ export function createRaceController({
     if (state === RACE_STATES.COUNTDOWN && time >= countdownEndsAt) {
       state = RACE_STATES.RACING;
       startedAt = time;
+      previousPosition = { x: position.x, z: position.z };
+      return snapshot();
     }
+
     if (state === RACE_STATES.RACING && checkpoints?.[checkpointIndex]) {
-      const checkpoint = checkpoints[checkpointIndex];
-      if (Math.hypot(position.x - checkpoint[0], position.z - checkpoint[1]) <= checkpointRadius) {
+      if (reachesCheckpoint(previousPosition, position, checkpoints[checkpointIndex], checkpointRadius)) {
         checkpointIndex += 1;
+        lastSplit = time - startedAt;
+        splitTimes.push(lastSplit);
+        checkpointEvent += 1;
         if (checkpointIndex === checkpoints.length) {
           state = RACE_STATES.FINISHED;
           finishedAt = time;
@@ -80,6 +136,8 @@ export function createRaceController({
         }
       }
     }
+
+    previousPosition = { x: position.x, z: position.z };
     return snapshot();
   }
 
@@ -94,9 +152,14 @@ export function createRaceController({
       state,
       checkpointIndex,
       checkpointTotal: checkpoints?.length || 0,
-      countdown: state === RACE_STATES.COUNTDOWN ? Math.max(1, Math.ceil((countdownEndsAt - time) / 1000)) : null,
+      checkpointEvent,
+      countdown: state === RACE_STATES.COUNTDOWN
+        ? Math.max(1, Math.ceil((countdownEndsAt - time) / 1000))
+        : null,
       elapsed,
       best,
+      splitTimes: [...splitTimes],
+      lastSplit,
       vehicleId: selectedVehicle,
     };
   }
