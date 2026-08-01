@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { engineForce, steeringLimit } from './vehicleMath.js';
 
+export const VEHICLE_VISUAL_YAW = 0;
+
 const KEY_BINDINGS = {
   KeyW: 'forward', ArrowUp: 'forward',
   KeyS: 'backward', ArrowDown: 'backward',
@@ -57,7 +59,7 @@ function createCarRoot(initialVisual) {
     visualMount.clear();
     const visual = model || basicCar();
     visual.position.y -= 0.48;
-    visual.rotation.y = Math.PI;
+    visual.rotation.y = VEHICLE_VISUAL_YAW;
     visual.traverse((child) => {
       if (!child.isMesh) return;
       child.castShadow = true;
